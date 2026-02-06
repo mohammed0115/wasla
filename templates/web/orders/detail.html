@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}تفاصيل الطلب | Waslah{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">تفاصيل الطلب: {{ order.order_number }}</h1>
+    <div class="text-muted small">
+      العميل: {{ order.customer.full_name|default:order.customer.email }} · الحالة: <span class="badge text-bg-light border">{{ order.status }}</span>
+    </div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'web:order_list' %}">رجوع</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">العناصر</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th style="width: 120px;">الكمية</th>
+              <th style="width: 160px;">السعر</th>
+              <th style="width: 200px;">الإجمالي (سطر)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }}</td>
+                <td>{{ item.price }} × {{ item.quantity }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-3">لا يوجد عناصر.</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="3" class="text-end">الإجمالي</th>
+              <th>{{ order.total_amount }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header bg-white fw-bold">الدفع</div>
+      <div class="card-body">
+        {% if order.status == 'pending' %}
+          <form method="post" action="{% url 'web:order_pay' order.id %}">
+            {% csrf_token %}
+            <button class="btn btn-success" type="submit">دفع (Card)</button>
+          </form>
+        {% else %}
+          <div class="text-muted small mb-2">الطلب ليس Pending.</div>
+        {% endif %}
+
+        <hr />
+        <div class="small text-muted mb-2">سجل الدفعات</div>
+        <ul class="list-group">
+          {% for p in payments %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>{{ p.method }} · {{ p.status }}</span>
+              <span class="text-nowrap">{{ p.amount }} · {{ p.created_at|date:"Y-m-d H:i" }}</span>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">لا يوجد دفعات بعد.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">تغيير الحالة</div>
+      <div class="card-body">
+        {% if can_transition_to %}
+          <form method="post" action="{% url 'web:order_change_status' order.id %}">
+            {% csrf_token %}
+            <select class="form-select mb-2" name="status" required>
+              {% for s in can_transition_to %}
+                <option value="{{ s }}">{{ s }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-primary w-100" type="submit">تحديث</button>
+          </form>
+        {% else %}
+          <div class="text-muted small">لا توجد انتقالات متاحة.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header bg-white fw-bold">الشحن</div>
+      <div class="card-body">
+        {% if order.status == 'processing' %}
+          <form method="post" action="{% url 'web:order_ship' order.id %}">
+            {% csrf_token %}
+            <label class="form-label">شركة الشحن</label>
+            {{ ship_form.carrier }}
+            <button class="btn btn-outline-primary mt-2 w-100" type="submit">إنشاء شحنة</button>
+          </form>
+        {% else %}
+          <div class="text-muted small mb-2">يجب تحويل الطلب إلى Processing قبل إنشاء شحنة.</div>
+        {% endif %}
+
+        <hr />
+        <div class="small text-muted mb-2">الشحنات</div>
+        <ul class="list-group">
+          {% for s in shipments %}
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between">
+                <span>{{ s.carrier }} · {{ s.status }}</span>
+                <span class="text-nowrap">{{ s.created_at|date:"Y-m-d H:i" }}</span>
+              </div>
+              <div class="text-muted small">Tracking: {{ s.tracking_number|default:"—" }}</div>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">لا يوجد شحنات بعد.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

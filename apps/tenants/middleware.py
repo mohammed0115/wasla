@@ -1,0 +1,87 @@
+from __future__ import annotations
+
+from django.conf import settings
+from django.db.utils import OperationalError, ProgrammingError
+
+from .models import Tenant
+
+
+class TenantMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.tenant = self._resolve_tenant(request)
+        return self.get_response(request)
+
+    def _resolve_tenant(self, request):
+        tenant = None
+
+        raw_header = (
+            request.headers.get("X-Tenant")
+            or request.headers.get("X-Tenant-Id")
+            or request.headers.get("X-Tenant-ID")
+        )
+        if raw_header:
+            raw_header = raw_header.strip()
+            try:
+                header_store_id = int(raw_header)
+            except ValueError:
+                header_store_id = None
+
+            try:
+                if header_store_id is not None:
+                    tenant = Tenant.objects.filter(id=header_store_id, is_active=True).first()
+                else:
+                    tenant = Tenant.objects.filter(slug=raw_header, is_active=True).first()
+                    if not tenant:
+                        tenant = Tenant.objects.filter(domain=raw_header, is_active=True).first()
+
+                if tenant:
+                    request.session["store_id"] = tenant.id
+                    return tenant
+            except (OperationalError, ProgrammingError):
+                return None
+
+        if settings.DEBUG:
+            raw_store_id = request.GET.get("store_id") or request.GET.get("tenant_id")
+            if raw_store_id:
+                try:
+                    store_id = int(raw_store_id)
+                except ValueError:
+                    store_id = None
+                if store_id:
+                    request.session["store_id"] = store_id
+
+        store_id = request.session.get("store_id")
+        try:
+            store_id = int(store_id) if store_id is not None else None
+        except (TypeError, ValueError):
+            store_id = None
+
+        host = request.get_host().split(":", 1)[0]
+
+        try:
+            if store_id is not None:
+                tenant = Tenant.objects.filter(id=store_id, is_active=True).first()
+                if tenant:
+                    return tenant
+
+            if host:
+                tenant = Tenant.objects.filter(domain=host, is_active=True).first()
+                if tenant:
+                    request.session["store_id"] = tenant.id
+                    return tenant
+
+                parts = host.split(".")
+                if len(parts) > 2:
+                    sub = parts[0]
+                    tenant = Tenant.objects.filter(slug=sub, is_active=True).first()
+                    if tenant:
+                        request.session["store_id"] = tenant.id
+                        return tenant
+
+        except (OperationalError, ProgrammingError):
+            return None
+
+        return None

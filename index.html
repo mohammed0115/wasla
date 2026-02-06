@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>إنشاء حساب | وصلة</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <meta name="color-scheme" content="light dark" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar" aria-label="Top bar">
+        <a class="brand" href="index.html" aria-label="Wasla">
+          <span class="brand-badge" aria-hidden="true">و</span>
+          <span class="brand-title">
+            <span>وصلة</span>
+            <small>منصة حديثة للتجار والخدمات</small>
+          </span>
+        </a>
+        <div class="toolbar">
+          <button class="icon-btn" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي">
+            <span id="themeIcon" aria-hidden="true">
+              <!-- Default icon (moon). JS will toggle it. -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M21 14.5A8.5 8.5 0 1 1 9.5 3a6.7 6.7 0 0 0 11.5 11.5Z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </button>
+        </div>
+      </header>
+
+      <main class="container">
+        <section class="card" aria-label="Registration card">
+          <div class="card-header">
+            <h1 class="title">إنشاء حساب جديد</h1>
+            <p class="subtitle">أهلاً بك! خلّنا نجهز حسابك خلال أقل من دقيقة.</p>
+          </div>
+
+          <div class="card-body">
+            <div class="alert" id="formAlert" role="alert" aria-live="polite"></div>
+
+            <form id="registerForm" novalidate>
+              <div class="field" id="fieldFullName">
+                <label class="label" for="fullName">الاسم الكامل</label>
+                <input
+                  class="input"
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  autocomplete="name"
+                  placeholder="مثال: أحمد محمد"
+                  aria-describedby="fullNameError"
+                  required
+                />
+                <div class="error" id="fullNameError">الاسم مطلوب (على الأقل حرفين).</div>
+              </div>
+
+              <div class="row two">
+                <div class="field" id="fieldPhone">
+                  <label class="label" for="phone">رقم الجوال (السعودية)</label>
+                  <input
+                    class="input"
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    inputmode="tel"
+                    autocomplete="tel"
+                    placeholder="05XXXXXXXX أو +9665XXXXXXXX"
+                    aria-describedby="phoneHelp phoneError"
+                    required
+                  />
+                  <div class="help" id="phoneHelp">نستخدمه لإرسال رمز التحقق (OTP).</div>
+                  <div class="error" id="phoneError">أدخل رقم جوال سعودي صحيح (مثل 05XXXXXXXX).</div>
+                </div>
+
+                <div class="field" id="fieldEmail">
+                  <label class="label" for="email">البريد الإلكتروني <span class="muted">(اختياري)</span></label>
+                  <input
+                    class="input"
+                    id="email"
+                    name="email"
+                    type="email"
+                    inputmode="email"
+                    autocomplete="email"
+                    placeholder="name@example.com"
+                    aria-describedby="emailError"
+                  />
+                  <div class="error" id="emailError">أدخل بريدًا إلكترونيًا صحيحًا.</div>
+                </div>
+              </div>
+
+              <div class="field" id="fieldPassword">
+                <label class="label" for="password">كلمة المرور</label>
+                <input
+                  class="input"
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="••••••••••"
+                  aria-describedby="passwordHint passwordError"
+                  required
+                />
+                <div class="help" id="passwordHint">على الأقل 10 أحرف وتحتوي رقمًا وحرفًا.</div>
+                <div class="meter" aria-hidden="true"><div id="passwordMeter"></div></div>
+                <div class="error" id="passwordError">كلمة المرور ضعيفة. جرّب إضافة أرقام/حروف أكثر.</div>
+              </div>
+
+              <div class="field" id="fieldRole">
+                <div class="label">نوع الحساب</div>
+                <div
+                  class="roles"
+                  role="radiogroup"
+                  aria-label="اختيار نوع الحساب"
+                  aria-describedby="roleError"
+                >
+                  <label class="role-card" data-role="user">
+                    <input type="radio" name="role" value="user" />
+                    <span class="role-title">مستخدم</span>
+                    <span class="role-desc">تصفح واطلب بسهولة</span>
+                  </label>
+                  <label class="role-card" data-role="merchant">
+                    <input type="radio" name="role" value="merchant" />
+                    <span class="role-title">تاجر</span>
+                    <span class="role-desc">أنشئ متجرك وابدأ البيع</span>
+                  </label>
+                  <label class="role-card" data-role="provider">
+                    <input type="radio" name="role" value="provider" />
+                    <span class="role-title">مقدم خدمة</span>
+                    <span class="role-desc">اعرض خدماتك للعملاء</span>
+                  </label>
+                </div>
+                <div class="error" id="roleError">اختر نوع الحساب للمتابعة.</div>
+              </div>
+
+              <div class="field" id="fieldTerms">
+                <label class="check" for="terms">
+                  <input id="terms" name="terms" type="checkbox" aria-describedby="termsError" />
+                  <span>
+                    أوافق على
+                    <a href="#" target="_blank" rel="noopener">الشروط والأحكام</a>
+                    و
+                    <a href="#" target="_blank" rel="noopener">سياسة الخصوصية</a>.
+                  </span>
+                </label>
+                <div class="error" id="termsError">لازم توافق على الشروط والخصوصية لإكمال التسجيل.</div>
+              </div>
+
+              <div class="actions">
+                <button class="btn btn-primary" id="submitBtn" type="submit">
+                  <span class="spinner" aria-hidden="true"></span>
+                  <span class="btn-text" id="submitText">إنشاء الحساب</span>
+                </button>
+                <a class="btn btn-secondary" href="/accounts/login/">لديك حساب؟ تسجيل الدخول</a>
+              </div>
+            </form>
+          </div>
+
+          <div class="footer">
+            <span>ملاحظة:</span>
+            <span>هذا نموذج واجهة (Demo) — بدون اتصال حقيقي بالخادم.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="js/register.js" defer></script>
+  </body>
+</html>

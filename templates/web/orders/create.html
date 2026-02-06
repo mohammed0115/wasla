@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}إنشاء طلب | Waslah{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h3 mb-1">إنشاء طلب</h1>
+  <div class="text-muted small">طلب جديد بحالة Pending</div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">العميل</label>
+        {{ order_form.customer }}
+        {% for error in order_form.customer.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <h2 class="h6 mt-4">العناصر</h2>
+      {{ formset.management_form }}
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th style="width: 140px;">الكمية</th>
+              <th style="width: 180px;">السعر</th>
+              <th style="width: 80px;">حذف</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in formset %}
+              <tr>
+                <td>
+                  {{ f.product }}
+                  {% for error in f.product.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </td>
+                <td>
+                  {{ f.quantity }}
+                  {% for error in f.quantity.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </td>
+                <td>
+                  {{ f.price }}
+                  {% for error in f.price.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </td>
+                <td class="text-center">
+                  {{ f.DELETE }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">حفظ الطلب</button>
+        <a class="btn btn-outline-secondary" href="{% url 'web:order_list' %}">رجوع</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

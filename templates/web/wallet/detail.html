@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}المحفظة | Waslah{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h3 mb-1">المحفظة</h1>
+    <div class="text-muted small">Credits/Debits + عرض رصيد المحفظة</div>
+  </div>
+  <span class="badge text-bg-light border">Store {{ store_id }}</span>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-muted small">الرصيد</div>
+        <div class="h3 mb-0">{{ wallet.balance }} {{ wallet.currency }}</div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header bg-white fw-bold">إضافة رصيد (Credit)</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'web:wallet_credit' %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label">Amount</label>
+            {{ credit_form.amount }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Reference</label>
+            {{ credit_form.reference }}
+          </div>
+          <button class="btn btn-success w-100" type="submit">Credit</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header bg-white fw-bold">سحب (Debit)</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'web:wallet_debit' %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label">Amount</label>
+            {{ debit_form.amount }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Reference</label>
+            {{ debit_form.reference }}
+          </div>
+          <button class="btn btn-outline-danger w-100" type="submit">Debit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">المعاملات</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Reference</th>
+              <th class="text-nowrap">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in transactions %}
+              <tr>
+                <td><span class="badge text-bg-light border">{{ t.transaction_type }}</span></td>
+                <td class="text-nowrap">{{ t.amount }}</td>
+                <td>{{ t.reference }}</td>
+                <td class="text-nowrap">{{ t.created_at|date:"Y-m-d H:i" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-4">لا يوجد معاملات بعد.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

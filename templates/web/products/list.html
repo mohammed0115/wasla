@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}المنتجات | Waslah{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h3 mb-1">المنتجات</h1>
+    <div class="text-muted small">إضافة/تعديل المنتجات — الحالة تلقائياً حسب المخزون</div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'web:product_create' %}">إضافة منتج</a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-striped table-hover mb-0">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th></th>
+          <th>الاسم</th>
+          <th class="text-nowrap">السعر</th>
+          <th class="text-nowrap">المخزون</th>
+          <th>الحالة</th>
+          <th>التصنيفات</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+          <tr>
+            <td class="text-nowrap">{{ product.sku }}</td>
+            <td style="width: 56px;">
+              {% if product.image %}
+                <img
+                  src="{{ product.image.url }}"
+                  alt="{{ product.name }}"
+                  style="width: 44px; height: 44px; object-fit: cover; border-radius: 10px;"
+                />
+              {% else %}
+                <div class="bg-light border" style="width: 44px; height: 44px; border-radius: 10px;"></div>
+              {% endif %}
+            </td>
+            <td>{{ product.name }}</td>
+            <td class="text-nowrap">{{ product.price }}</td>
+            <td class="text-nowrap">
+              {% if product.inventory %}
+                {{ product.inventory.quantity }}
+              {% else %}
+                0
+              {% endif %}
+            </td>
+            <td>
+              {% if product.is_active %}
+                <span class="badge text-bg-success">Active</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Inactive</span>
+              {% endif %}
+            </td>
+            <td>
+              {% for cat in product.categories.all %}
+                <span class="badge text-bg-light border">{{ cat.name }}</span>
+              {% empty %}
+                <span class="text-muted small">—</span>
+              {% endfor %}
+            </td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'web:product_edit' product.id %}">تعديل</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">لا يوجد منتجات بعد.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

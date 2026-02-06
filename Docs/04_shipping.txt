@@ -1,0 +1,5 @@
+Shipping Page Scenario
+- Assign carrier
+- Track shipment status
+- View tracking numbers
+- Roles: Owner, Manager

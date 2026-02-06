@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}المراجعات | Waslah{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h3 mb-1">المراجعات</h1>
+  <div class="text-muted small">Moderation: Pending → Approve / Reject</div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>المنتج</th>
+          <th>التقييم</th>
+          <th>الحالة</th>
+          <th>تعليق</th>
+          <th class="text-nowrap">التاريخ</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reviews %}
+          <tr>
+            <td class="text-nowrap">{{ r.product.name }}</td>
+            <td>{{ r.rating }}</td>
+            <td><span class="badge text-bg-light border">{{ r.status }}</span></td>
+            <td class="text-truncate" style="max-width: 420px;">{{ r.comment|default:"—" }}</td>
+            <td class="text-nowrap">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+            <td class="text-end">
+              {% if r.status == 'pending' %}
+                <form class="d-inline" method="post" action="{% url 'web:review_approve' r.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-success" type="submit">Approve</button>
+                </form>
+                <form class="d-inline" method="post" action="{% url 'web:review_reject' r.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                </form>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">لا يوجد مراجعات بعد.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+

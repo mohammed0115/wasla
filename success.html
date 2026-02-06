@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>تم بنجاح | وصلة</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <meta name="color-scheme" content="light dark" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar" aria-label="Top bar">
+        <a class="brand" href="index.html" aria-label="Wasla">
+          <span class="brand-badge" aria-hidden="true">و</span>
+          <span class="brand-title">
+            <span>وصلة</span>
+            <small>تم إنشاء الحساب</small>
+          </span>
+        </a>
+        <div class="toolbar">
+          <button class="icon-btn" id="themeToggle" type="button" aria-label="تبديل الوضع الليلي">
+            <span id="themeIcon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M21 14.5A8.5 8.5 0 1 1 9.5 3a6.7 6.7 0 0 0 11.5 11.5Z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </button>
+        </div>
+      </header>
+
+      <main class="container">
+        <section class="card" aria-label="Success card">
+          <div class="card-header">
+            <h1 class="title">تم إنشاء حسابك بنجاح</h1>
+            <p class="subtitle">مبروك! حسابك جاهز — تقدر تبدأ الآن.</p>
+          </div>
+
+          <div class="card-body">
+            <div class="alert success show" role="status" aria-live="polite">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M20 6 9 17l-5-5"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                <div>
+                  <div style="font-weight:800;">تم إنشاء حسابك بنجاح 🎉</div>
+                  <div class="muted" id="nextStepText">جارٍ تجهيز الخطوة التالية...</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="label">ملخص الحساب</div>
+              <div class="input" style="display:grid;gap:8px;">
+                <div>
+                  <span class="muted">الاسم:</span>
+                  <strong id="summaryName">—</strong>
+                </div>
+                <div>
+                  <span class="muted">رقم الجوال:</span>
+                  <strong id="summaryPhone" dir="ltr">—</strong>
+                </div>
+                <div>
+                  <span class="muted">النوع:</span>
+                  <strong id="summaryRole">—</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <a class="btn btn-primary" id="goDashboardBtn" href="/">
+                الانتقال إلى لوحة التحكم
+              </a>
+              <a class="btn btn-secondary" href="index.html">إنشاء حساب آخر</a>
+            </div>
+
+            <p class="muted" style="margin: 12px 0 0;">
+              ملاحظة: زر لوحة التحكم موجه للتكامل داخل التطبيق (Django). في المعاينة المحلية قد تحتاج لتعديله.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // Simple theme + summary renderer (no extra JS files requested).
+      (function () {
+        const STORAGE_KEY = "wasla_theme";
+        const themeToggle = document.getElementById("themeToggle");
+        const themeIcon = document.getElementById("themeIcon");
+
+        const applyTheme = (theme) => {
+          document.documentElement.setAttribute("data-theme", theme);
+          if (!themeIcon) return;
+          if (theme === "dark") {
+            themeIcon.innerHTML = `
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 20v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M4.93 4.93l1.41 1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M17.66 17.66l1.41 1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M2 12h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M20 12h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M4.93 19.07l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            `;
+          } else {
+            themeIcon.innerHTML = `
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M21 14.5A8.5 8.5 0 1 1 9.5 3a6.7 6.7 0 0 0 11.5 11.5Z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            `;
+          }
+        };
+
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved === "dark" || saved === "light") applyTheme(saved);
+
+        if (themeToggle) {
+          themeToggle.addEventListener("click", () => {
+            const current = document.documentElement.getAttribute("data-theme") || "light";
+            const next = current === "dark" ? "light" : "dark";
+            localStorage.setItem(STORAGE_KEY, next);
+            applyTheme(next);
+          });
+        }
+
+        const regRaw = localStorage.getItem("wasla_reg");
+        let reg = null;
+        try {
+          reg = regRaw ? JSON.parse(regRaw) : null;
+        } catch (_) {}
+
+        const roleMap = { user: "مستخدم", merchant: "تاجر", provider: "مقدم خدمة" };
+        const nameEl = document.getElementById("summaryName");
+        const phoneEl = document.getElementById("summaryPhone");
+        const roleEl = document.getElementById("summaryRole");
+        const nextEl = document.getElementById("nextStepText");
+
+        if (reg && nameEl && phoneEl && roleEl) {
+          nameEl.textContent = reg.fullName || "—";
+          phoneEl.textContent = reg.phoneE164 || "—";
+          roleEl.textContent = roleMap[reg.role] || "—";
+
+          if (nextEl) {
+            if (reg.role === "merchant") nextEl.textContent = "الخطوة التالية: إعداد المتجر.";
+            else if (reg.role === "provider") nextEl.textContent = "الخطوة التالية: إكمال ملف مقدم الخدمة.";
+            else nextEl.textContent = "الخطوة التالية: ابدأ التصفح.";
+          }
+        } else if (nextEl) {
+          nextEl.textContent = "يمكنك الآن المتابعة داخل التطبيق.";
+        }
+      })();
+    </script>
+  </body>
+</html>

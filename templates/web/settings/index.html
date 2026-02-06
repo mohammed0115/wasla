@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}الإعدادات | Wasla{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h3 mb-1">الإعدادات</h1>
+  <div class="text-muted small">Store profile · Subscription & billing</div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">معلومات المتجر</div>
+      <div class="card-body">
+        <div class="mb-2">
+          <span class="text-muted">Store ID:</span>
+          <span class="badge text-bg-light border">{{ store_id }}</span>
+          {% if tenant %}
+            <span class="text-muted small ms-2">{{ tenant.name }} · {{ tenant.slug }}</span>
+          {% endif %}
+        </div>
+
+        {% if tenant %}
+          <div class="mb-3">
+            <span class="text-muted small">Status:</span>
+            {% if tenant.is_published %}
+              <span class="badge text-bg-success">Live</span>
+              <a class="ms-2 small" href="{% url 'web:storefront_home' %}" target="_blank" rel="noopener">Open storefront</a>
+            {% elif store_profile and store_profile.is_setup_complete %}
+              <span class="badge text-bg-secondary">Unpublished</span>
+              <a class="ms-2 small" href="{% url 'web:dashboard_setup_activate' %}">Publish</a>
+            {% else %}
+              <span class="badge text-bg-warning">Needs setup</span>
+              {% if not store_profile %}
+                <a class="ms-2 small" href="{% url 'web:dashboard_setup_store' %}">Open setup wizard</a>
+              {% elif store_profile.setup_step == 2 %}
+                <a class="ms-2 small" href="{% url 'web:dashboard_setup_payment' %}">Open setup wizard</a>
+              {% elif store_profile.setup_step == 3 %}
+                <a class="ms-2 small" href="{% url 'web:dashboard_setup_shipping' %}">Open setup wizard</a>
+              {% elif store_profile.setup_step == 4 %}
+                <a class="ms-2 small" href="{% url 'web:dashboard_setup_activate' %}">Activate store</a>
+              {% endif %}
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" action="{% url 'web:store_settings_update' %}">
+          {% csrf_token %}
+
+          {{ store_settings_form.currency.as_hidden }}
+          {{ store_settings_form.language.as_hidden }}
+
+          <div class="mb-3">
+            <label class="form-label">اسم المتجر</label>
+            {{ store_settings_form.name }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">الرابط (slug)</label>
+            {{ store_settings_form.slug }}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">الشعار</label>
+              {{ store_settings_form.logo }}
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label">اللون الأساسي</label>
+              {{ store_settings_form.primary_color }}
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label">اللون الثانوي</label>
+              {{ store_settings_form.secondary_color }}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary" type="submit">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">الاشتراك والفوترة</div>
+      <div class="card-body">
+        {% if active_subscription %}
+          <div>الخطة: <strong>{{ active_subscription.plan.name }}</strong></div>
+          <div class="text-muted small">ينتهي: {{ active_subscription.end_date }}</div>
+        {% else %}
+          <div class="text-muted">لا يوجد اشتراك فعال.</div>
+        {% endif %}
+        <a class="btn btn-outline-primary mt-3" href="{% url 'web:subscription_plans' %}">إدارة الاشتراك</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

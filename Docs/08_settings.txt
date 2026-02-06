@@ -1,0 +1,5 @@
+Settings Scenario
+- Store profile
+- Users & roles
+- Subscription & billing
+- Owner only

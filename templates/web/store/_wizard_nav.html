@@ -1,0 +1,19 @@
+<div class="d-flex flex-wrap gap-2 mb-3">
+  {% if tenant %}
+    {% url "web:store_setup_step1" as step1_url %}
+  {% else %}
+    {% url "web:dashboard_setup_store" as step1_url %}
+  {% endif %}
+  <a class="btn btn-sm {% if step == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ step1_url }}">
+    1) معلومات المتجر
+  </a>
+  <a class="btn btn-sm {% if step == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'web:dashboard_setup_payment' %}">
+    2) الدفع
+  </a>
+  <a class="btn btn-sm {% if step == 3 %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'web:dashboard_setup_shipping' %}">
+    3) الشحن
+  </a>
+  <a class="btn btn-sm {% if step == 4 %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'web:dashboard_setup_activate' %}">
+    4) تفعيل المتجر
+  </a>
+</div>

@@ -1,0 +1,5 @@
+Products Page Scenario
+- Add / Edit products
+- Manage price, stock, status
+- Auto status based on stock
+- Roles: Owner, Manager

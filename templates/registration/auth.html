@@ -1,0 +1,99 @@
+{% extends "base_public.html" %}
+{% block title %}الحساب | Wasla{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <ul class="nav nav-tabs mb-4" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link {% if active_tab == 'login' %}active{% endif %}" href="{% url 'login' %}">
+              تسجيل الدخول
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link {% if active_tab == 'register' %}active{% endif %}" href="{% url 'signup' %}">
+              حساب جديد
+            </a>
+          </li>
+        </ul>
+
+        {% if active_tab == 'login' %}
+          <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            {% if login_form.non_field_errors %}
+              <div class="alert alert-danger">{{ login_form.non_field_errors|striptags }}</div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label">{{ login_form.identifier.label }}</label>
+              {{ login_form.identifier }}
+              {% if login_form.identifier.errors %}<div class="text-danger small mt-1">{{ login_form.identifier.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ login_form.password.label }}</label>
+              {{ login_form.password }}
+              {% if login_form.password.errors %}<div class="text-danger small mt-1">{{ login_form.password.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}" />
+            <button class="btn btn-primary w-100" type="submit">دخول</button>
+          </form>
+        {% else %}
+          <form method="post" action="{% url 'signup' %}">
+            {% csrf_token %}
+
+            {% if signup_form.non_field_errors %}
+              <div class="alert alert-danger">{{ signup_form.non_field_errors|striptags }}</div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label">{{ signup_form.full_name.label }}</label>
+              {{ signup_form.full_name }}
+              {% if signup_form.full_name.errors %}<div class="text-danger small mt-1">{{ signup_form.full_name.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ signup_form.phone.label }}</label>
+              {{ signup_form.phone }}
+              {% if signup_form.phone.errors %}<div class="text-danger small mt-1">{{ signup_form.phone.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ signup_form.email.label }}</label>
+              {{ signup_form.email }}
+              {% if signup_form.email.errors %}<div class="text-danger small mt-1">{{ signup_form.email.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ signup_form.password.label }}</label>
+              {{ signup_form.password }}
+              {% if signup_form.password.errors %}<div class="text-danger small mt-1">{{ signup_form.password.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <div class="form-check mb-3">
+              {{ signup_form.accept_terms }}
+              <label class="form-check-label">{{ signup_form.accept_terms.label }}</label>
+              {% if signup_form.accept_terms.errors %}<div class="text-danger small mt-1">{{ signup_form.accept_terms.errors|striptags }}</div>{% endif %}
+            </div>
+
+            <button class="btn btn-primary w-100" type="submit">إنشاء حساب</button>
+          </form>
+        {% endif %}
+
+        <div class="text-center mt-4">
+          <div class="text-muted small mb-2">التسجيل عبر</div>
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-secondary" type="button" disabled>Google (Phase 2)</button>
+            <button class="btn btn-outline-secondary" type="button" disabled>Apple (Phase 2)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

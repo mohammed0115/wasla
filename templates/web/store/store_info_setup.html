@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}إعداد المتجر | Wasla{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-7">
+    <div class="mb-3">
+      <h1 class="h4 mb-1">إعداد المتجر — معلومات المتجر</h1>
+      <div class="text-muted small">أدخل اسم المتجر والرابط (slug) لإنشاء متجرك خلال دقائق.</div>
+    </div>
+
+    {% include "web/store/_wizard_nav.html" with step=1 %}
+
+    <div class="card">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label">اسم المتجر</label>
+            {{ form.name }}
+            {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">رابط المتجر (Subdomain)</label>
+            {{ form.slug }}
+            <div class="form-text">مثال: <code>myshop</code> → <code>myshop.domain.com</code></div>
+            {% if form.slug.errors %}<div class="text-danger small mt-1">{{ form.slug.errors|striptags }}</div>{% endif %}
+          </div>
+
+          {{ form.currency }}
+          {{ form.language }}
+
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary" type="submit">إنشاء المتجر</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

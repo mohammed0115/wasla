@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}لوحة التحكم | Wasla{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h3 mb-1">لوحة التحكم</h1>
+    <div class="text-muted small">مؤشرات مجمّعة فقط (بدون تعديل بيانات خام)</div>
+  </div>
+</div>
+
+{% if tenant %}
+  <div class="card mb-3">
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <div class="text-muted small">حالة المتجر</div>
+        {% if tenant.is_published %}
+          <span class="badge text-bg-success">Live</span>
+        {% elif store_profile and store_profile.is_setup_complete %}
+          <span class="badge text-bg-secondary">Unpublished</span>
+        {% else %}
+          <span class="badge text-bg-warning">Needs setup</span>
+        {% endif %}
+        <span class="text-muted small ms-2">{{ tenant.name }} · {{ tenant.slug }}</span>
+        {% if store_profile and not store_profile.is_setup_complete %}
+          <div class="text-muted small mt-1">
+            {% if store_profile.setup_step == 2 %}
+              الإعداد المطلوب: الدفع
+            {% elif store_profile.setup_step == 3 %}
+              الإعداد المطلوب: الشحن
+            {% elif store_profile.setup_step == 4 %}
+              الخطوة الأخيرة: تفعيل المتجر
+            {% endif %}
+          </div>
+        {% elif store_profile and store_profile.is_setup_complete and not tenant.is_published %}
+          <div class="text-muted small mt-1">المتجر جاهز، لكنه غير منشور بعد.</div>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-2">
+        {% if not store_profile %}
+          <a class="btn btn-outline-primary" href="{% url 'web:dashboard_setup_store' %}">إعداد المتجر</a>
+        {% elif not store_profile.is_setup_complete and store_profile.setup_step == 2 %}
+          <a class="btn btn-outline-primary" href="{% url 'web:dashboard_setup_payment' %}">إكمال الإعداد</a>
+        {% elif not store_profile.is_setup_complete and store_profile.setup_step == 3 %}
+          <a class="btn btn-outline-primary" href="{% url 'web:dashboard_setup_shipping' %}">إكمال الإعداد</a>
+        {% elif not store_profile.is_setup_complete and store_profile.setup_step == 4 %}
+          <a class="btn btn-outline-primary" href="{% url 'web:dashboard_setup_activate' %}">تفعيل المتجر</a>
+        {% elif store_profile.is_setup_complete and not tenant.is_published %}
+          <a class="btn btn-outline-primary" href="{% url 'web:dashboard_setup_activate' %}">نشر المتجر</a>
+        {% elif tenant.is_published %}
+          <a class="btn btn-outline-primary" href="{% url 'web:storefront_home' %}" target="_blank" rel="noopener">فتح المتجر</a>
+        {% endif %}
+        <a class="btn btn-primary" href="{% url 'web:product_create' %}">إضافة منتج</a>
+        <a class="btn btn-outline-secondary" href="{% url 'web:order_list' %}">عرض الطلبات</a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card card-metric">
+      <div class="card-body">
+        <div class="metric-label">الإيراد اليوم</div>
+        <div class="metric-value">{{ revenue_today }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card card-metric">
+      <div class="card-body">
+        <div class="metric-label">طلبات اليوم</div>
+        <div class="metric-value">{{ orders_today }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card card-metric">
+      <div class="card-body">
+        <div class="metric-label">رصيد المحفظة</div>
+        <div class="metric-value">{{ wallet.balance }} {{ wallet.currency }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card card-metric">
+      <div class="card-body">
+        <div class="metric-label">شحنات نشطة</div>
+        <div class="metric-value">{{ active_shipments }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">المنتجات</div>
+            <div class="h5 mb-0">{{ products_count }}</div>
+          </div>
+          <a class="btn btn-outline-primary" href="{% url 'web:product_list' %}">إدارة</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">مراجعات معلّقة</div>
+            <div class="h5 mb-0">{{ pending_reviews }}</div>
+          </div>
+          <a class="btn btn-outline-primary" href="{% url 'web:review_list' %}">مراجعة</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">التصنيفات</div>
+      <div class="card-body">
+        {% for cat in categories %}
+          <span class="badge text-bg-light border mb-1">{{ cat.name }}</span>
+        {% empty %}
+          <div class="text-muted small">لا توجد تصنيفات لهذا المتجر بعد.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+        <span>آخر المنتجات</span>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'web:product_list' %}">إدارة</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th></th>
+              <th>الاسم</th>
+              <th class="text-nowrap">السعر</th>
+              <th class="text-nowrap">المخزون</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in latest_products %}
+              <tr>
+                <td style="width: 56px;">
+                  {% if p.image %}
+                    <img
+                      src="{{ p.image.url }}"
+                      alt="{{ p.name }}"
+                      style="width: 44px; height: 44px; object-fit: cover; border-radius: 10px;"
+                    />
+                  {% else %}
+                    <div class="bg-light border" style="width: 44px; height: 44px; border-radius: 10px;"></div>
+                  {% endif %}
+                </td>
+                <td class="text-nowrap">{{ p.name }}</td>
+                <td class="text-nowrap">{{ p.price }}</td>
+                <td class="text-nowrap">
+                  {% if p.inventory %}{{ p.inventory.quantity }}{% else %}0{% endif %}
+                </td>
+                <td>
+                  {% if p.is_active %}
+                    <span class="badge text-bg-success">Active</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">Inactive</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-3">لا توجد منتجات بعد.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

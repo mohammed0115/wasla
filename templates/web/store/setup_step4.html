@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Store Setup (4/4) | Wasla{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h4 mb-1">إعداد المتجر — الخطوة 4</h1>
+  <div class="text-muted small">إضافة أول منتج</div>
+</div>
+
+{% include "web/store/_wizard_nav.html" with step=step %}
+
+{% if already_has_product %}
+  <div class="alert alert-success">
+    يوجد منتجات في المتجر بالفعل. يمكنك إنهاء الإعداد أو إضافة منتج جديد.
+  </div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <label class="form-label">SKU</label>
+          {{ form.sku }}
+        </div>
+        <div class="col-12 col-md-8">
+          <label class="form-label">الاسم</label>
+          {{ form.name }}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">السعر</label>
+          {{ form.price }}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">المخزون</label>
+          {{ form.quantity }}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">الصورة</label>
+          {{ form.image }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">التصنيفات</label>
+          <div class="d-flex flex-wrap gap-2">
+            {{ form.categories }}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a class="btn btn-outline-secondary" href="{% url 'web:store_setup_step3' %}">رجوع</a>
+        {% if already_has_product %}
+          <button class="btn btn-outline-success" name="finish" value="1" type="submit">إنهاء الإعداد</button>
+        {% endif %}
+        <button class="btn btn-primary" type="submit">إضافة المنتج وإنهاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

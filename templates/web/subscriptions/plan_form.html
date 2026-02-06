@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}إضافة خطة | Waslah{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h3 mb-1">إضافة خطة اشتراك</h1>
+  <div class="text-muted small">أضف features مثل: plugins,wallet</div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+      {% endfor %}
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">حفظ</button>
+        <a class="btn btn-outline-secondary" href="{% url 'web:subscription_plans' %}">رجوع</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

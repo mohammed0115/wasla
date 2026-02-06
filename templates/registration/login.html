@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}تسجيل الدخول | Waslah{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-6 col-xl-4">
+    <div class="card">
+      <div class="card-body">
+        <h1 class="h4 mb-3">تسجيل الدخول</h1>
+
+        {% if form.errors %}
+          <div class="alert alert-danger">بيانات الدخول غير صحيحة.</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input class="form-control" type="text" name="username" autocomplete="username" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input class="form-control" type="password" name="password" autocomplete="current-password" required />
+          </div>
+
+          <input type="hidden" name="next" value="{{ next }}" />
+          <button class="btn btn-primary w-100" type="submit">دخول</button>
+        </form>
+
+        <div class="text-center small mt-3">
+          <a href="{% url 'signup' %}">Create account</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

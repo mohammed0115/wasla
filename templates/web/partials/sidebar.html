@@ -1,0 +1,14 @@
+{% with p=request.path %}
+<div class="d-grid gap-2">
+  <a class="nav-link {% if p == '/' %}active{% endif %}" href="{% url 'web:dashboard' %}">لوحة التحكم</a>
+  <a class="nav-link {% if '/products/' in p %}active{% endif %}" href="{% url 'web:product_list' %}">المنتجات</a>
+  <a class="nav-link {% if '/orders/' in p %}active{% endif %}" href="{% url 'web:order_list' %}">الطلبات</a>
+  <a class="nav-link {% if '/shipments/' in p %}active{% endif %}" href="{% url 'web:shipment_list' %}">الشحن</a>
+  <a class="nav-link {% if '/wallet/' in p %}active{% endif %}" href="{% url 'web:wallet_detail' %}">المحفظة</a>
+  <a class="nav-link {% if '/reviews/' in p %}active{% endif %}" href="{% url 'web:review_list' %}">المراجعات</a>
+  <a class="nav-link {% if '/app-store/' in p %}active{% endif %}" href="{% url 'web:plugin_store' %}">متجر التطبيقات</a>
+  <a class="nav-link {% if '/subscriptions/' in p %}active{% endif %}" href="{% url 'web:subscription_plans' %}">الاشتراكات</a>
+  <a class="nav-link {% if '/settings/' in p %}active{% endif %}" href="{% url 'web:settings' %}">الإعدادات</a>
+</div>
+{% endwith %}
+

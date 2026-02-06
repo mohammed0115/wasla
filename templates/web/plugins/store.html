@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}متجر التطبيقات | Waslah{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h3 mb-1">متجر التطبيقات</h1>
+    <div class="text-muted small">تثبيت الإضافات — مقيد حسب الخطة</div>
+  </div>
+  <span class="badge text-bg-light border">Store {{ store_id }}</span>
+</div>
+
+{% if not active_subscription %}
+  <div class="alert alert-warning">
+    لا يوجد اشتراك فعال. لن تستطيع تثبيت الإضافات.
+    <a href="{% url 'web:subscription_plans' %}">اذهب للاشتراكات</a>.
+  </div>
+{% else %}
+  {% if 'plugins' not in active_subscription.plan.features %}
+    <div class="alert alert-warning">
+      خطتك الحالية لا تسمح بالإضافات. غيّر الخطة من صفحة الاشتراكات.
+      <a href="{% url 'web:subscription_plans' %}">الاشتراكات</a>.
+    </div>
+  {% endif %}
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>الإصدار</th>
+          <th>المزود</th>
+          <th>السعر</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in plugins %}
+          <tr>
+            <td class="text-nowrap">{{ p.name }}</td>
+            <td class="text-nowrap">{{ p.version }}</td>
+            <td class="text-nowrap">{{ p.provider }}</td>
+            <td class="text-nowrap">{{ p.price }}</td>
+            <td>
+              {% if p.id in installed_ids %}
+                <span class="badge text-bg-success">Installed</span>
+              {% else %}
+                <span class="badge text-bg-light border">Available</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if p.id in installed_ids %}
+                <span class="text-muted small">—</span>
+              {% else %}
+                <form method="post" action="{% url 'web:plugin_install' p.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-primary" type="submit">Install</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">لا يوجد Plugins بعد. أضفها من Admin.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,5 @@
+Wallet Scenario
+- Credits: completed orders
+- Debits: withdrawals, fees
+- Available vs Pending balance
+- Owner only

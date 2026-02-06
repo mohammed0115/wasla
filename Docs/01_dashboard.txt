@@ -1,0 +1,7 @@
+Dashboard Scenario
+- Purpose: Quick decision making
+- Shows: Revenue, Orders Today, Wallet Balance, Active Shipments
+- Used by: Owner, Manager
+- Rules:
+  * Numbers are aggregated
+  * No raw data editing

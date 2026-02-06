@@ -1,0 +1,5 @@
+Orders Page Scenario
+- Orders lifecycle (State Machine)
+- Created → Paid → Processing → Shipped → Delivered → Completed
+- No invalid transitions
+- Roles: Owner, Manager, Staff

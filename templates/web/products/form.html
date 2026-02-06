@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}{% if mode == 'create' %}إضافة منتج{% else %}تعديل منتج{% endif %} | Waslah{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h3 mb-1">{% if mode == 'create' %}إضافة منتج{% else %}تعديل منتج{% endif %}</h1>
+  <div class="text-muted small">ملاحظة: سيتم تفعيل/تعطيل المنتج تلقائياً بناءً على كمية المخزون.</div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="row g-3">
+        {% for field in form %}
+          <div class="col-12">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text">{{ field.help_text }}</div>
+            {% endif %}
+            {% for error in field.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary" type="submit">حفظ</button>
+        <a class="btn btn-outline-secondary" href="{% url 'web:product_list' %}">رجوع</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

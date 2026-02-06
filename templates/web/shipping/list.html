@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}الشحن | Waslah{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h3 mb-1">الشحن</h1>
+  <div class="text-muted small">تتبع الشحنات وأرقام التتبع</div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>الطلب</th>
+          <th>شركة الشحن</th>
+          <th>Tracking</th>
+          <th>الحالة</th>
+          <th class="text-nowrap">التاريخ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in shipments %}
+          <tr>
+            <td class="text-nowrap">
+              <a href="{% url 'web:order_detail' s.order.id %}">{{ s.order.order_number }}</a>
+            </td>
+            <td>{{ s.carrier }}</td>
+            <td class="text-nowrap">{{ s.tracking_number|default:"—" }}</td>
+            <td><span class="badge text-bg-light border">{{ s.status }}</span></td>
+            <td class="text-nowrap">{{ s.created_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">لا يوجد شحنات بعد.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+

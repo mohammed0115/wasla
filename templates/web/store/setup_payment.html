@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}إعداد المتجر (2/4) | Wasla{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h4 mb-1">إعداد المتجر — الخطوة 2</h1>
+  <div class="text-muted small">إعدادات الدفع (MVP) · بوابات الدفع في المرحلة الثانية</div>
+</div>
+
+{% include "web/store/_wizard_nav.html" with step=step %}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">وضع الدفع</label>
+        {{ form.payment_mode }}
+        {% if form.payment_mode.errors %}<div class="text-danger small mt-1">{{ form.payment_mode.errors|striptags }}</div>{% endif %}
+        <div class="form-text">Manual = الدفع عند الاستلام/يدوي. Dummy = للاختبارات. Gateway = مرحلة ثانية.</div>
+      </div>
+
+      <div class="alert alert-info small">
+        بوابات الدفع (HyperPay / PayTabs / Moyasar) ستُضاف في المرحلة الثانية. يمكنك حفظ الإعدادات الآن والمتابعة.
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <label class="form-label">Provider</label>
+          {{ form.provider_name }}
+          {% if form.provider_name.errors %}<div class="text-danger small mt-1">{{ form.provider_name.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Merchant key</label>
+          {{ form.merchant_key }}
+          {% if form.merchant_key.errors %}<div class="text-danger small mt-1">{{ form.merchant_key.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Webhook secret</label>
+          {{ form.webhook_secret }}
+          {% if form.webhook_secret.errors %}<div class="text-danger small mt-1">{{ form.webhook_secret.errors|striptags }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-check mt-3">
+        {{ form.is_enabled }}
+        <label class="form-check-label">تفعيل الدفع</label>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a class="btn btn-outline-secondary" href="{% url 'web:store_setup_step1' %}">رجوع</a>
+        <button class="btn btn-primary" type="submit">حفظ والمتابعة</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+App Store Scenario
+- Browse plugins
+- Install / Activate
+- Locked by plan
+- Owner only

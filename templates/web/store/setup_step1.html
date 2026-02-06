@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Store Setup (1/4) | Wasla{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h4 mb-1">إعداد المتجر — الخطوة 1</h1>
+  <div class="text-muted small">معلومات المتجر الأساسية</div>
+</div>
+
+{% include "web/store/_wizard_nav.html" with step=step %}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">اسم المتجر</label>
+        {{ form.name }}
+        {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>{% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">رابط المتجر (Subdomain)</label>
+        {{ form.slug }}
+        {% if form.slug.errors %}<div class="text-danger small mt-1">{{ form.slug.errors|striptags }}</div>{% endif %}
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">الشعار (اختياري)</label>
+          {{ form.logo }}
+          {% if form.logo.errors %}<div class="text-danger small mt-1">{{ form.logo.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label">اللون الأساسي</label>
+          {{ form.primary_color }}
+          {% if form.primary_color.errors %}<div class="text-danger small mt-1">{{ form.primary_color.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label">اللون الثانوي</label>
+          {{ form.secondary_color }}
+          {% if form.secondary_color.errors %}<div class="text-danger small mt-1">{{ form.secondary_color.errors|striptags }}</div>{% endif %}
+        </div>
+      </div>
+
+      <input type="hidden" name="currency" value="SAR" />
+      <input type="hidden" name="language" value="ar" />
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a class="btn btn-outline-secondary" href="{% url 'web:dashboard' %}">لوحة التحكم</a>
+        <button class="btn btn-primary" type="submit">حفظ والمتابعة</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

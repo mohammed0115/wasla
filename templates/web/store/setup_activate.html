@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}إعداد المتجر (4/4) | Wasla{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h4 mb-1">إعداد المتجر — الخطوة 4</h1>
+  <div class="text-muted small">تفعيل المتجر والانتقال للوضع المباشر (Go Live)</div>
+</div>
+
+{% include "web/store/_wizard_nav.html" with step=step tenant=tenant %}
+
+<div class="row g-3">
+  <div class="col-12 col-lg-7">
+    <div class="card">
+      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+        <span>Readiness checklist</span>
+        {% if tenant.is_published %}
+          <span class="badge text-bg-success">Live</span>
+        {% else %}
+          <span class="badge text-bg-warning">Not live</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <ul class="list-group">
+          {% for item in readiness.items %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <div class="me-3">
+                <div class="fw-bold">{{ item.label }}</div>
+                {% if not item.ok and item.message %}
+                  <div class="text-muted small">{{ item.message }}</div>
+                {% endif %}
+              </div>
+              {% if item.ok %}
+                <span class="badge text-bg-success">OK</span>
+              {% else %}
+                <span class="badge text-bg-danger">Fix</span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <a class="btn btn-outline-secondary" href="{% url 'web:dashboard_setup_payment' %}">الدفع</a>
+          <a class="btn btn-outline-secondary" href="{% url 'web:dashboard_setup_shipping' %}">الشحن</a>
+          <a class="btn btn-outline-secondary" href="{% url 'web:product_create' %}">إضافة منتج</a>
+          <a class="btn btn-outline-primary" href="{{ storefront_path }}" target="_blank" rel="noopener">معاينة المتجر</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">Activation</div>
+      <div class="card-body">
+        <div class="mb-2">
+          <div class="text-muted small">Public host (default)</div>
+          <div class="fw-bold">{{ public_url_hint }}</div>
+          <div class="text-muted small">Storefront path: <code>{{ storefront_path }}</code></div>
+        </div>
+
+        <div class="alert alert-info small">
+          Custom domains + DNS verification will be added in Phase 2.
+        </div>
+
+        {% if tenant.is_published %}
+          <div class="alert alert-success small">
+            Store is live.
+            {% if tenant.activated_at %}<span class="text-muted">Activated at {{ tenant.activated_at }}</span>{% endif %}
+          </div>
+          <form method="post" class="mt-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="deactivate" />
+            <div class="mb-2">
+              <label class="form-label">Reason (optional)</label>
+              <input class="form-control" type="text" name="reason" maxlength="200" />
+            </div>
+            <button class="btn btn-outline-danger" type="submit">Deactivate store</button>
+          </form>
+        {% else %}
+          {% if readiness.ok %}
+            <form method="post" class="mt-3">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="activate" />
+              <button class="btn btn-primary" type="submit">Activate store</button>
+            </form>
+          {% else %}
+            <button class="btn btn-primary mt-3" type="button" disabled>Activate store</button>
+            <div class="text-muted small mt-2">Fix the checklist items above to enable activation.</div>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

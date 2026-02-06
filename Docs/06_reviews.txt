@@ -1,0 +1,5 @@
+Reviews Scenario
+- Customer submits review
+- Status: Pending
+- Approve or Reject
+- Roles: Owner, Manager

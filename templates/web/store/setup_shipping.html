@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}إعداد المتجر (3/4) | Wasla{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="h4 mb-1">إعداد المتجر — الخطوة 3</h1>
+  <div class="text-muted small">إعدادات الشحن (MVP) · شركات الشحن في المرحلة الثانية</div>
+</div>
+
+{% include "web/store/_wizard_nav.html" with step=step %}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">وضع التنفيذ (Fulfillment)</label>
+        {{ form.fulfillment_mode }}
+        {% if form.fulfillment_mode.errors %}<div class="text-danger small mt-1">{{ form.fulfillment_mode.errors|striptags }}</div>{% endif %}
+        <div class="form-text">Carrier (Phase 2) سيُضاف لاحقاً (SPL/SMSA/Aramex).</div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">مدينة الانطلاق</label>
+          {{ form.origin_city }}
+          {% if form.origin_city.errors %}<div class="text-danger small mt-1">{{ form.origin_city.errors|striptags }}</div>{% endif %}
+          <div class="form-text">مطلوبة لأي وضع غير Pickup.</div>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label">رسوم توصيل ثابتة</label>
+          {{ form.delivery_fee_flat }}
+          {% if form.delivery_fee_flat.errors %}<div class="text-danger small mt-1">{{ form.delivery_fee_flat.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label">شحن مجاني عند</label>
+          {{ form.free_shipping_threshold }}
+          {% if form.free_shipping_threshold.errors %}<div class="text-danger small mt-1">{{ form.free_shipping_threshold.errors|striptags }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-check mt-3">
+        {{ form.is_enabled }}
+        <label class="form-check-label">تفعيل الشحن</label>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a class="btn btn-outline-secondary" href="{% url 'web:dashboard_setup_payment' %}">رجوع</a>
+        <button class="btn btn-primary" type="submit">حفظ والمتابعة</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
