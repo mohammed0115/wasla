@@ -31,12 +31,11 @@ SECRET_KEY = os.getenv(
 DEBUG = os.getenv("DJANGO_DEBUG", "1").strip().lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv(
+    
         "76.13.143.149",
-        "localhost,127.0.0.1,[::1],testserver",
-    ).split(",")
-    if host.strip()
+        "localhost",
+        "127.0.0.1"
+        
 ]
 
 CSRF_TRUSTED_ORIGINS = [
