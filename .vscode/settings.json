@@ -1,0 +1,18 @@
+{
+    "chat.editing.explainChanges.enabled": true,
+    "chat.editMode.hidden": true,
+    "chat.disableAIFeatures": false,
+    "chat.edits2.enabled": true,
+    "chat.experimental.useSkillAdherencePrompt": true,
+    "chat.allowAnonymousAccess": true,
+    "chat.alternativeToolAction.enabled": true,
+    "chat.checkpoints.showFileChanges": true,
+    "chat.customAgentInSubagent.enabled": true,
+    "chat.tools.terminal.sandbox.enabled": true,
+    "chat.mcp.assisted.nuget.enabled": true,
+    "chat.tools.terminal.ignoreDefaultAutoApproveRules": true,
+    "chat.useNestedAgentsMdFiles": true,
+    "chat.viewProgressBadge.enabled": true,
+    "inlineChat.enableV2": true,
+    "inlineChat.finishOnType": true
+}

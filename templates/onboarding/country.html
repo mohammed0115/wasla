@@ -1,0 +1,49 @@
+{% extends "base_public.html" %}
+{% block title %}اختيار الدولة | Wasla{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-10 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4 p-md-5">
+        <h1 class="h4 mb-2">اختر دولتك</h1>
+        <p class="text-muted mb-4">لا يمكنك المتابعة بدون اختيار الدولة.</p>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            {% for code, label in options %}
+              <div class="col-12 col-md-4">
+                <button
+                  class="card w-100 h-100 text-start border {% if current_country == code %}border-primary{% else %}border-light{% endif %}"
+                  type="submit"
+                  name="country"
+                  value="{{ code }}"
+                  style="cursor: pointer;"
+                >
+                  <div class="card-body">
+                    <div class="fw-semibold">{{ label }}</div>
+                    <div class="text-muted small mt-1">{{ code }}</div>
+                  </div>
+                </button>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="mt-4 d-flex justify-content-between align-items-center">
+            <a class="btn btn-link text-decoration-none" href="{% url 'logout' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+              تسجيل الخروج
+            </a>
+            <span class="text-muted small">الخطوة 1 من 3</span>
+          </div>
+        </form>
+
+        <form id="logout-form" method="post" action="{% url 'logout' %}" class="d-none">
+          {% csrf_token %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

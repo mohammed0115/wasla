@@ -11,14 +11,15 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+    <link rel="stylesheet" href="{% static 'wasla/css/hero_banner.css' %}" />
     {% block extra_head %}{% endblock %}
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container-fluid">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'web:dashboard' %}">
-          <img src="{% static 'images/logo.png' %}" alt="Wasla" style="height: 36px;" />
-          <span>Wasla</span>
+          <img src="{% static 'images/logo.jpeg' %}" alt="وصلة" class="wasla-logo" />
+          <span>وصلة</span>
         </a>
 
         <div class="d-flex align-items-center gap-2">
@@ -60,6 +61,10 @@
                 {{ message }}
               </div>
             {% endfor %}
+          {% endif %}
+
+          {% if show_wasla_hero_banner %}
+            {% include 'partials/wasla_hero_banner.html' %}
           {% endif %}
 
           {% block content %}{% endblock %}

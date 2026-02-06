@@ -2,6 +2,13 @@ body {
   background: #f7f8fb;
 }
 
+.wasla-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .sidebar {
   min-height: calc(100vh - 56px);
   background: #ffffff;

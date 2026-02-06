@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}السلة | وصلة{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+  <div>
+    <h1 class="h4 mb-1">السلة</h1>
+    <div class="text-muted small">هذه الصفحة placeholder حالياً (Cart سيتم بناؤه لاحقاً).</div>
+  </div>
+  <a class="btn btn-sm btn-primary" href="{% url 'web:categories' %}">تصفح المنتجات</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="text-center py-5">
+      <div class="h5 mb-2">السلة قادمة قريباً</div>
+      <div class="text-muted mb-3">نقوم الآن بربط تجربة السلة والشراء بتدفقات المتجر.</div>
+      <a class="btn btn-outline-primary" href="{% url 'web:landing' %}">العودة للصفحة الرئيسية</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

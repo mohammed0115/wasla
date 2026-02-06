@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}حسابي | وصلة{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+  <div>
+    <h1 class="h4 mb-1">حسابي</h1>
+    <div class="text-muted small">إدارة معلومات الحساب الأساسية</div>
+  </div>
+  <a class="btn btn-sm btn-outline-primary" href="{% url 'web:settings' %}">إعدادات المتجر</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3">
+          <img class="wasla-logo" src="{% static 'images/logo.jpeg' %}" alt="شعار وصلة" />
+          <div>
+            <div class="fw-bold">{{ user.username }}</div>
+            <div class="text-muted small">{% if user.email %}{{ user.email }}{% else %}—{% endif %}</div>
+          </div>
+        </div>
+
+        <hr />
+
+        <div class="d-flex justify-content-between small">
+          <span class="text-muted">الحالة</span>
+          <span class="fw-semibold">{% if user.is_active %}نشط{% else %}غير نشط{% endif %}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="fw-bold mb-2">روابط سريعة</div>
+        <div class="d-grid gap-2">
+          <a class="btn btn-outline-secondary" href="{% url 'web:categories' %}">التصنيفات</a>
+          <a class="btn btn-outline-secondary" href="{% url 'web:product_list' %}">المنتجات</a>
+          <a class="btn btn-outline-secondary" href="{% url 'web:order_list' %}">الطلبات</a>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger w-100" type="submit">تسجيل الخروج</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

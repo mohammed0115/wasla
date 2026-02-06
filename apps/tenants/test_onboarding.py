@@ -53,6 +53,16 @@ class MerchantStoreCreationScenarioTests(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
+
+        country = self.client.post(reverse("onboarding:country"), data={"country": "SA"}, follow=True)
+        self.assertEqual(country.status_code, 200)
+
+        business_types = self.client.post(
+            reverse("onboarding:business_types"),
+            data={"business_types": ["fashion"]},
+            follow=True,
+        )
+        self.assertEqual(business_types.status_code, 200)
         return phone, email
 
     def test_signup_then_create_store_then_complete_wizard(self):

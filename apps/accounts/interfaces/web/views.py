@@ -9,6 +9,10 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.application.use_cases.login import LoginCommand, LoginUseCase
+from apps.accounts.application.use_cases.resolve_merchant_next_step import (
+    ResolveMerchantNextStepCommand,
+    ResolveMerchantNextStepUseCase,
+)
 from apps.accounts.application.use_cases.register_merchant import (
     RegisterMerchantCommand,
     RegisterMerchantUseCase,
@@ -18,6 +22,7 @@ from apps.accounts.domain.errors import (
     AccountValidationError,
     InvalidCredentialsError,
 )
+from apps.accounts.domain.post_auth_state_machine import MerchantNextStep
 from apps.accounts.interfaces.web.forms import MerchantLoginForm, MerchantSignupForm
 
 
@@ -34,6 +39,18 @@ def _login_user(request: HttpRequest, user: object) -> None:
         login(request, user, backend=backend)
         return
     login(request, user)
+
+
+def _next_step_url(step: MerchantNextStep) -> str:
+    if step == MerchantNextStep.DASHBOARD:
+        return reverse("web:dashboard")
+    if step == MerchantNextStep.ONBOARDING_COUNTRY:
+        return reverse("onboarding:country")
+    if step == MerchantNextStep.ONBOARDING_BUSINESS_TYPES:
+        return reverse("onboarding:business_types")
+    if step == MerchantNextStep.STORE_CREATE:
+        return reverse("web:dashboard_setup_store")
+    return reverse("onboarding:country")
 
 
 @require_http_methods(["GET", "POST"])
@@ -57,8 +74,13 @@ def login_view(request: HttpRequest) -> HttpResponse:
         else:
             _login_user(request, result.user)
             messages.success(request, "Logged in successfully.")
-            next_url = request.POST.get("next") or request.GET.get("next") or reverse("web:dashboard")
-            return redirect(next_url)
+            step = ResolveMerchantNextStepUseCase.execute(
+                ResolveMerchantNextStepCommand(user=result.user, otp_required=result.otp_required)
+            ).step
+            if step == MerchantNextStep.DASHBOARD:
+                next_url = request.POST.get("next") or request.GET.get("next") or reverse("web:dashboard")
+                return redirect(next_url)
+            return redirect(_next_step_url(step))
 
     return render(
         request,
@@ -97,7 +119,10 @@ def signup_view(request: HttpRequest) -> HttpResponse:
         else:
             _login_user(request, result.user)
             messages.success(request, "Account created successfully.")
-            return redirect("web:dashboard_setup_store")
+            step = ResolveMerchantNextStepUseCase.execute(
+                ResolveMerchantNextStepCommand(user=result.user, otp_required=result.otp_required)
+            ).step
+            return redirect(_next_step_url(step))
 
     return render(
         request,

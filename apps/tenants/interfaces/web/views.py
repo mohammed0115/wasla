@@ -7,6 +7,11 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
+from apps.accounts.application.use_cases.resolve_merchant_next_step import (
+    ResolveMerchantNextStepCommand,
+    ResolveMerchantNextStepUseCase,
+)
+from apps.accounts.domain.post_auth_state_machine import MerchantNextStep
 from apps.tenants.application.policies.ownership import EnsureTenantOwnershipPolicy
 from apps.tenants.application.use_cases.create_store import CreateStoreCommand, CreateStoreUseCase
 from apps.tenants.application.use_cases.activate_store import (
@@ -63,6 +68,14 @@ def dashboard_setup_store(request: HttpRequest) -> HttpResponse:
             if not profile.is_setup_complete and state.current_step == StoreSetupWizardUseCase.STEP_FIRST_PRODUCT:
                 return redirect("web:dashboard_setup_activate")
         return redirect("web:dashboard")
+
+    next_step = ResolveMerchantNextStepUseCase.execute(
+        ResolveMerchantNextStepCommand(user=request.user)
+    ).step
+    if next_step == MerchantNextStep.ONBOARDING_COUNTRY:
+        return redirect("onboarding:country")
+    if next_step == MerchantNextStep.ONBOARDING_BUSINESS_TYPES:
+        return redirect("onboarding:business_types")
 
     form = StoreInfoSetupForm(request.POST or None)
     if request.method == "POST" and form.is_valid():

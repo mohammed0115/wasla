@@ -23,7 +23,12 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("wasla_sore.api_urls")),
+    path("auth/", include(("apps.accounts.interfaces.web.auth_urls", "auth"), namespace="auth")),
     path("accounts/", include("apps.accounts.interfaces.web.urls")),
+    path(
+        "onboarding/",
+        include(("apps.accounts.interfaces.web.onboarding_urls", "onboarding"), namespace="onboarding"),
+    ),
     path("", include("wasla_sore.web_urls")),
 ]
 

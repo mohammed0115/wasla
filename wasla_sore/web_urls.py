@@ -7,7 +7,11 @@ from apps.tenants.interfaces.web import storefront_views as tenant_storefront_vi
 app_name = "web"
 
 urlpatterns = [
-    path("", web_views.dashboard, name="dashboard"),
+    path("dashboard/", web_views.dashboard, name="dashboard"),
+    path("", web_views.landing, name="landing"),
+    path("categories/", web_views.category_list, name="categories"),
+    path("account/", web_views.account_home, name="account"),
+    path("cart/", web_views.cart_home, name="cart"),
     path("dashboard/setup/store/", tenant_web_views.dashboard_setup_store, name="dashboard_setup_store"),
     path("dashboard/setup/payment/", tenant_web_views.dashboard_setup_payment, name="dashboard_setup_payment"),
     path("dashboard/setup/shipping/", tenant_web_views.dashboard_setup_shipping, name="dashboard_setup_shipping"),

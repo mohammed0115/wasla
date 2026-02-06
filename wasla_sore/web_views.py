@@ -614,3 +614,29 @@ def settings_view(request: HttpRequest) -> HttpResponse:
             "store_settings_form": store_settings_form,
         },
     )
+
+
+@require_GET
+def landing(request: HttpRequest) -> HttpResponse:
+    return render(request, "web/landing.html")
+
+
+@login_required
+@require_GET
+@tenant_access_required
+def category_list(request: HttpRequest) -> HttpResponse:
+    store_id = _get_store_id(request)
+    categories = Category.objects.filter(store_id=store_id).order_by("name")
+    return render(request, "web/categories/list.html", {"store_id": store_id, "categories": categories})
+
+
+@login_required
+@require_GET
+def account_home(request: HttpRequest) -> HttpResponse:
+    return render(request, "web/account/index.html")
+
+
+@login_required
+@require_GET
+def cart_home(request: HttpRequest) -> HttpResponse:
+    return render(request, "web/cart/index.html")

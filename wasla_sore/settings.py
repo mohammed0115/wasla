@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from datetime import timedelta
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -21,12 +22,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--cop!lr6o*&sny4$%3&-=)l18w7-lf+7$a8itl+q%qz!4p1yll"
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure--cop!lr6o*&sny4$%3&-=)l18w7-lf+7$a8itl+q%qz!4p1yll",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "1").strip().lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]", "testserver"]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "DJANGO_ALLOWED_HOSTS",
+        "localhost,127.0.0.1,[::1],testserver",
+    ).split(",")
+    if host.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 
 # Application definition
@@ -41,6 +58,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "apps.accounts.apps.AccountsConfig",
+    "apps.sms.apps.SmsConfig",
     "apps.tenants.apps.TenantsConfig",
     "apps.catalog.apps.CatalogConfig",
     "apps.customers.apps.CustomerConfig",
@@ -132,9 +150,10 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = Path(os.getenv("DJANGO_STATIC_ROOT", str(BASE_DIR / "staticfiles")))
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.getenv("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
@@ -155,6 +174,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "auth": "10/min",
+        "onboarding": "30/min",
     },
 }
 
@@ -164,6 +184,24 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
+}
+
+# SMS (multi-gateway)
+SMS_DEFAULT_PROVIDER = os.getenv("SMS_DEFAULT_PROVIDER", "console").strip() or "console"
+SMS_DEFAULT_SENDER_NAME = os.getenv("SMS_DEFAULT_SENDER_NAME", "Wasla").strip() or "Wasla"
+SMS_DEFAULT_COUNTRY_CODE = os.getenv("SMS_DEFAULT_COUNTRY_CODE", "").strip()
+
+SMS_PROVIDERS = {
+    "console": {
+        "sender_name": SMS_DEFAULT_SENDER_NAME,
+    },
+    "taqnyat": {
+        "base_url": os.getenv("SMS_TAQNYAT_BASE_URL", "https://api.taqnyat.sa").strip() or "https://api.taqnyat.sa",
+        "bearer_token": os.getenv("SMS_TAQNYAT_BEARER_TOKEN", "").strip(),
+        "sender_name": os.getenv("SMS_TAQNYAT_SENDER_NAME", SMS_DEFAULT_SENDER_NAME).strip() or SMS_DEFAULT_SENDER_NAME,
+        "timeout_seconds": int(os.getenv("SMS_TAQNYAT_TIMEOUT_SECONDS", "10") or "10"),
+        "include_bearer_as_query_param": (os.getenv("SMS_TAQNYAT_INCLUDE_QUERY_TOKEN", "0").strip().lower() in ("1", "true", "yes")),
+    },
 }
 
 # Default primary key field type

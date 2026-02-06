@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}التصنيفات | وصلة{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+  <div>
+    <h1 class="h4 mb-1">التصنيفات</h1>
+    <div class="text-muted small">متجرك: {{ store_id }}</div>
+  </div>
+  <a class="btn btn-sm btn-primary" href="{% url 'web:product_create' %}">إضافة منتج</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {% if categories %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th class="text-muted">الأب</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in categories %}
+              <tr>
+                <td class="fw-semibold">{{ c.name }}</td>
+                <td class="text-muted small">{% if c.parent %}{{ c.parent.name }}{% else %}—{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <div class="h5 mb-2">لا توجد تصنيفات بعد</div>
+        <div class="text-muted mb-3">ابدأ بإضافة أول منتج واختر له تصنيفًا.</div>
+        <a class="btn btn-primary" href="{% url 'web:product_create' %}">إضافة منتج</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

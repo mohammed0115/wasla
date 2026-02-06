@@ -1,0 +1,250 @@
+{% load static %}
+
+{% url 'auth:register' as auth_register_url %}
+{% url 'auth:login' as auth_login_url %}
+{% url 'web:categories' as categories_url %}
+{% url 'web:account' as account_url %}
+{% url 'web:cart' as cart_url %}
+
+<section id="top" class="wasla-hero" aria-label="Wasla hero banner">
+  <div class="container position-relative">
+    <div class="row align-items-center g-4">
+      <div class="col-12 col-lg-7 text-end">
+        <div class="wasla-hero__eyebrow mb-3">
+          <span aria-hidden="true">●</span>
+          <span>منصة وصلة للتجارة الإلكترونية</span>
+        </div>
+
+        <h1 class="display-5 fw-bold wasla-hero__title mb-3">
+          ابني متجرك، نظّم منتجاتك، وابدأ البيع بسرعة
+        </h1>
+
+        <p class="lead wasla-hero__subtitle mb-0">
+          تجربة عربية RTL، تدفقات تسجيل/أونبوردنغ واضحة، ولوحة تحكم تساعدك تطلق متجرك بثقة.
+        </p>
+
+        <div class="wasla-hero__chips" aria-label="Key highlights">
+          <span class="wasla-hero__chip"><span class="wasla-hero__chip-dot" aria-hidden="true"></span>دقّة</span>
+          <span class="wasla-hero__chip"><span class="wasla-hero__chip-dot" aria-hidden="true"></span>سرعة</span>
+          <span class="wasla-hero__chip"><span class="wasla-hero__chip-dot" aria-hidden="true"></span>سهولة</span>
+        </div>
+
+        <div class="wasla-hero__cta" role="group" aria-label="Hero actions">
+          {% if user.is_authenticated %}
+            <a class="btn btn-warning fw-semibold px-4" href="{{ categories_url }}">ابدأ الآن</a>
+            <a class="btn btn-outline-light fw-semibold px-4" href="{{ categories_url }}">تصفح المنتجات</a>
+            <a class="btn btn-outline-light fw-semibold px-4" href="{{ cart_url }}">السلة</a>
+            <a class="btn btn-outline-light fw-semibold px-4" href="{{ account_url }}">حسابي</a>
+          {% else %}
+            <a class="btn btn-warning fw-semibold px-4" href="{{ auth_register_url }}">ابدأ الآن</a>
+            <a class="btn btn-outline-light fw-semibold px-4" href="{{ auth_login_url }}">تسجيل الدخول</a>
+            <a class="btn btn-outline-light fw-semibold px-4" href="{{ auth_login_url }}?next={{ categories_url|urlencode }}">تصفح المنتجات</a>
+            <a class="btn btn-outline-light fw-semibold px-4" href="{{ auth_login_url }}?next={{ cart_url|urlencode }}">السلة</a>
+            <a class="btn btn-outline-light fw-semibold px-4" href="{{ auth_login_url }}?next={{ account_url|urlencode }}">حسابي</a>
+          {% endif %}
+          <a class="btn btn-link text-white text-decoration-none fw-semibold px-3" href="#wasla-how-it-works">
+            كيف تعمل؟
+          </a>
+        </div>
+
+        <div class="wasla-hero__cards" aria-label="Feature cards">
+          <div class="wasla-hero__feature">
+            <p class="wasla-hero__feature-title">تجربة جاهزة للجوال</p>
+            <p class="wasla-hero__feature-desc">تصميم متجاوب RTL يشتغل بسلاسة على كل الشاشات.</p>
+          </div>
+          <div class="wasla-hero__feature">
+            <p class="wasla-hero__feature-title">تدفقات واضحة</p>
+            <p class="wasla-hero__feature-desc">من تسجيل الحساب حتى إعداد المتجر خطوة بخطوة.</p>
+          </div>
+          <div class="wasla-hero__feature">
+            <p class="wasla-hero__feature-title">روابط حقيقية</p>
+            <p class="wasla-hero__feature-desc">الأزرار مربوطة بمسارات Django الفعلية داخل النظام.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-5">
+        <div class="wasla-phone" aria-label="Phone mockup">
+          <div class="wasla-phone__inner">
+            <div class="wasla-phone__header">
+              <div class="wasla-phone__brand">
+                <img class="wasla-logo" src="{% static 'images/logo.jpeg' %}" alt="شعار وصلة" />
+                <span>وصلة</span>
+              </div>
+              <span class="wasla-phone__badge">مباشر</span>
+            </div>
+
+            <ul class="wasla-phone__list">
+              <li class="wasla-phone__item">
+                <span class="wasla-phone__item-icon" aria-hidden="true">1</span>
+                <div>
+                  <p class="wasla-phone__item-title">إنشاء حساب</p>
+                  <p class="wasla-phone__item-desc">اسم، جوال، بريد، كلمة مرور.</p>
+                </div>
+              </li>
+              <li class="wasla-phone__item">
+                <span class="wasla-phone__item-icon" aria-hidden="true">2</span>
+                <div>
+                  <p class="wasla-phone__item-title">اختيار الدولة</p>
+                  <p class="wasla-phone__item-desc">🇸🇦 السعودية أو 🇦🇪 الإمارات أو أخرى.</p>
+                </div>
+              </li>
+              <li class="wasla-phone__item">
+                <span class="wasla-phone__item-icon" aria-hidden="true">3</span>
+                <div>
+                  <p class="wasla-phone__item-title">نوع النشاط</p>
+                  <p class="wasla-phone__item-desc">اختر 1 إلى 5 مجالات.</p>
+                </div>
+              </li>
+              <li class="wasla-phone__item">
+                <span class="wasla-phone__item-icon" aria-hidden="true">4</span>
+                <div>
+                  <p class="wasla-phone__item-title">إطلاق المتجر</p>
+                  <p class="wasla-phone__item-desc">إنشاء المتجر ثم الدفع والشحن والتفعيل.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="wasla-how-it-works" class="wasla-how" aria-label="How it works">
+  <div class="container py-4 py-lg-5">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+      <h2 class="h4 wasla-how__title m-0">كيف تعمل وصلة؟</h2>
+      <a class="btn btn-sm btn-outline-primary rounded-pill" href="#top">رجوع للأعلى</a>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-md-4">
+        <div class="wasla-how__card">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <span class="wasla-how__step" aria-hidden="true">1</span>
+            <span class="fw-bold">حساب وأونبوردنغ</span>
+          </div>
+          <p class="text-muted mb-0">سجّل، اختر الدولة، وحدد نوع النشاط في دقائق.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="wasla-how__card">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <span class="wasla-how__step" aria-hidden="true">2</span>
+            <span class="fw-bold">إنشاء المتجر</span>
+          </div>
+          <p class="text-muted mb-0">اكتب اسم المتجر واختر الـslug وشاهد الدومين المقترح.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="wasla-how__card">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <span class="wasla-how__step" aria-hidden="true">3</span>
+            <span class="fw-bold">منتجات وطلبات</span>
+          </div>
+          <p class="text-muted mb-0">أضف المنتجات، تابع الطلبات، واضبط الدفع والشحن.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="wasla-marketing" class="wasla-marketing" aria-label="Wasla marketing banner">
+  <div class="container py-4 py-lg-5">
+    <div class="wasla-marketing__header text-center mb-4">
+      <p class="wasla-marketing__eyebrow">ليش وصلة مختلفة؟</p>
+      <h2 class="wasla-marketing__title">منصة تجارة مصممة للتجّار وللمستخدمين</h2>
+    </div>
+
+    <div class="row g-3 g-lg-4 mb-4">
+      <div class="col-12 col-md-4">
+        <div class="wasla-marketing__card">
+          <div class="wasla-marketing__icon" aria-hidden="true">✓</div>
+          <h3 class="h6 fw-bold mb-2">دقّة وثقة</h3>
+          <p class="text-muted mb-0">نتائج دقيقة من متجر موثوق وتجربة شراء مستقرة.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="wasla-marketing__card">
+          <div class="wasla-marketing__icon" aria-hidden="true">✓</div>
+          <h3 class="h6 fw-bold mb-2">بساطة بدون تعقيد</h3>
+          <p class="text-muted mb-0">لا خطوات كثيرة ولا إعدادات معقدة — كل شيء واضح.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="wasla-marketing__card">
+          <div class="wasla-marketing__icon" aria-hidden="true">✓</div>
+          <h3 class="h6 fw-bold mb-2">سرعة ذكية</h3>
+          <p class="text-muted mb-0">من صورة واحدة، نوصلك للمنتج خلال ثوانٍ.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="wasla-marketing__header text-center mb-3">
+      <h3 class="wasla-marketing__subtitle">كيف تعمل وصلة؟</h3>
+      <p class="text-muted mb-0">تجربة شراء مصممة لعصر السرعة</p>
+    </div>
+    <div class="row g-3 g-lg-4 mb-4">
+      <div class="col-12 col-md-6">
+        <div class="wasla-marketing__step">
+          <span class="wasla-marketing__step-num">1</span>
+          <div>
+            <p class="fw-bold mb-1">ارفع صورة المنتج</p>
+            <p class="text-muted mb-0">صورة واحدة تكفي لإطلاق البحث الذكي.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="wasla-marketing__step">
+          <span class="wasla-marketing__step-num">2</span>
+          <div>
+            <p class="fw-bold mb-1">وصلة تحلل وتطابق</p>
+            <p class="text-muted mb-0">نقارن ونرجع لك أفضل المنتجات المتاحة.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wasla-marketing__cta text-center mb-4">
+      <p class="wasla-marketing__cta-title">اختر واشترِ فورًا</p>
+      <p class="text-muted mb-3">وصلة لا تغيّر طريقة الشراء... هي تختصرها.</p>
+      <a class="btn btn-primary px-4" href="{% if user.is_authenticated %}{{ categories_url }}{% else %}{{ auth_register_url }}{% endif %}">
+        ابدأ الآن
+      </a>
+    </div>
+
+    <div class="row g-3 g-lg-4 mb-4">
+      <div class="col-12 col-lg-6">
+        <div class="wasla-marketing__panel">
+          <div class="wasla-marketing__panel-title">للمستخدم</div>
+          <ul class="wasla-marketing__list">
+            <li>توصل لما تريد بدون كتابة طويلة</li>
+            <li>اختيارات أسرع وأوضح</li>
+            <li>تجربة شراء ممتعة</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="wasla-marketing__panel">
+          <div class="wasla-marketing__panel-title">للتاجر</div>
+          <ul class="wasla-marketing__list">
+            <li>زيارات جاهزة للشراء</li>
+            <li>معدل تحويل أعلى</li>
+            <li>وصول لعملاء جدد</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="wasla-marketing__header text-center mb-3">
+      <h3 class="wasla-marketing__subtitle">تناسب متاجر كثيرة</h3>
+    </div>
+    <div class="wasla-marketing__categories">
+      <span class="wasla-marketing__category">أزياء</span>
+      <span class="wasla-marketing__category">إلكترونيات</span>
+      <span class="wasla-marketing__category">أثاث</span>
+      <span class="wasla-marketing__category">إكسسوارات</span>
+    </div>
+  </div>
+</section>
