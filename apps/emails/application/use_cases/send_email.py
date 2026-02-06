@@ -3,10 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any, Mapping
 
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from apps.emails.application.services.provider_resolver import TenantEmailProviderResolver
@@ -38,7 +37,6 @@ class SendEmailUseCase:
         return hashlib.sha256(raw).hexdigest()[:64]
 
     @staticmethod
-    @transaction.atomic
     def execute(cmd: SendEmailCommand) -> EmailLog:
         to_email = validate_recipient_email(cmd.to_email)
         template_key = normalize_template_key(cmd.template_key)
@@ -54,7 +52,15 @@ class SendEmailUseCase:
             context=cmd.context,
         )
 
-        try:
+        with transaction.atomic():
+            existing = (
+                EmailLog.objects.select_for_update()
+                .filter(tenant_id=cmd.tenant_id, idempotency_key=idempotency_key)
+                .first()
+            )
+            if existing:
+                return existing
+
             log = EmailLog.objects.create(
                 tenant_id=cmd.tenant_id,
                 to_email=to_email,
@@ -65,31 +71,29 @@ class SendEmailUseCase:
                 idempotency_key=idempotency_key,
                 metadata=dict(cmd.metadata or {}),
             )
-        except IntegrityError:
-            log = EmailLog.objects.select_for_update().filter(tenant_id=cmd.tenant_id, idempotency_key=idempotency_key).first()
-            if not log:
-                raise
+
+            message = EmailMessage(
+                to_email=to_email,
+                subject=subject,
+                html=rendered.html,
+                text=rendered.text,
+                headers=rendered.headers or {},
+                metadata={"template_key": template_key, **{k: str(v) for k, v in (cmd.metadata or {}).items()}},
+            )
+
+            def _enqueue():
+                from apps.emails.tasks import enqueue_send_email  # local import to avoid celery hard dependency
+
+                enqueue_send_email(
+                    email_log_id=log.id,
+                    tenant_id=cmd.tenant_id,
+                    provider=resolved.provider,
+                    message=message,
+                )
+
+            transaction.on_commit(_enqueue)
+
             return log
-
-        message = EmailMessage(
-            to_email=to_email,
-            subject=subject,
-            html=rendered.html,
-            text=rendered.text,
-            headers=rendered.headers or {},
-            metadata={"template_key": template_key, **{k: str(v) for k, v in (cmd.metadata or {}).items()}},
-        )
-
-        from apps.emails.tasks import enqueue_send_email  # local import to avoid celery hard dependency at import time
-
-        enqueue_send_email(
-            email_log_id=log.id,
-            tenant_id=cmd.tenant_id,
-            provider=resolved.provider,
-            message=message,
-        )
-
-        return log
 
     @staticmethod
     @transaction.atomic
@@ -113,4 +117,3 @@ class SendEmailUseCase:
             status=EmailLog.STATUS_FAILED,
             last_error=(error or "")[:4000],
         )
-

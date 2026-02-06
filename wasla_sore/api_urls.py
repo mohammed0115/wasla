@@ -14,4 +14,5 @@ urlpatterns = [
     path("", include("apps.subscriptions.urls")),
     path("", include("apps.wallet.urls")),
     path("", include("apps.plugins.urls")),
+    path("", include("apps.emails.urls")),
 ]

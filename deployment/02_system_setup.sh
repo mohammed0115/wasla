@@ -10,7 +10,7 @@ set -Eeuo pipefail
 # - Installs Python deps (requirements.txt if present; otherwise pinned minimal set)
 
 PROJECT_NAME="${PROJECT_NAME:-wasla}"
-PROJECT_ROOT="${PROJECT_ROOT:-/opt/wasla}"
+PROJECT_ROOT="${PROJECT_ROOT:-/var/www/wasla}"
 BACKEND_PATH="${BACKEND_PATH:-${PROJECT_ROOT}/app}"
 VENV_PATH="${VENV_PATH:-${PROJECT_ROOT}/venv}"
 
@@ -70,6 +70,9 @@ else
     "Django>=5.1,<5.3" \
     "djangorestframework>=3.15,<3.17" \
     "djangorestframework-simplejwt>=5.3,<6" \
+    "celery>=5.4,<6" \
+    "redis>=5,<6" \
+    "cryptography>=42,<45" \
     "Pillow>=10,<13" \
     "requests>=2.31,<3" \
     "gunicorn>=21,<23" \

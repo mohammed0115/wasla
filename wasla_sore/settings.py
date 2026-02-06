@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "apps.shipping.apps.ShippingConfig",
     "apps.subscriptions.apps.SubscriptionConfig",
     "apps.wallet.apps.WalletConfig",
+    "apps.emails.apps.EmailsConfig",
 ]
 
 MIDDLEWARE = [
