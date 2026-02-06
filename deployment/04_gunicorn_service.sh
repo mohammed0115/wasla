@@ -5,7 +5,7 @@ set -Eeuo pipefail
 # App service setup:
 # - Runs Django migrations
 # - Collects static files
-# - Creates systemd socket + service for Gunicorn (unix socket)
+# - Creates systemd service for Gunicorn (unix socket)
 # - Auto-restart on failure
 # - Proper logging via journald
 # - Exports OCR environment
@@ -14,7 +14,7 @@ PROJECT_NAME="${PROJECT_NAME:-wasla}"
 PROJECT_ROOT="${PROJECT_ROOT:-/opt/wasla}"
 BACKEND_PATH="${BACKEND_PATH:-${PROJECT_ROOT}/app}"
 VENV_PATH="${VENV_PATH:-${PROJECT_ROOT}/venv}"
-DOMAIN_NAME="${DOMAIN_NAME:-}"
+DOMAIN_NAME="${DOMAIN_NAME:-76.13.143.149}"
 
 ENV_DIR="/etc/${PROJECT_NAME}"
 DJANGO_ENV_FILE="${ENV_DIR}/django.env"
@@ -71,8 +71,13 @@ fi
 allowed_hosts="localhost,127.0.0.1,[::1]"
 csrf_trusted=""
 if [[ -n "${DOMAIN_NAME}" ]]; then
-  allowed_hosts="${DOMAIN_NAME},www.${DOMAIN_NAME}"
-  csrf_trusted="https://${DOMAIN_NAME},https://www.${DOMAIN_NAME}"
+  if [[ "${DOMAIN_NAME}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    allowed_hosts="${DOMAIN_NAME},localhost,127.0.0.1,[::1]"
+    csrf_trusted="http://${DOMAIN_NAME},https://${DOMAIN_NAME}"
+  else
+    allowed_hosts="${DOMAIN_NAME},www.${DOMAIN_NAME}"
+    csrf_trusted="http://${DOMAIN_NAME},http://www.${DOMAIN_NAME},https://${DOMAIN_NAME},https://www.${DOMAIN_NAME}"
+  fi
 fi
 
 cat > "${DJANGO_ENV_FILE}" <<EOF
@@ -83,6 +88,9 @@ DJANGO_ALLOWED_HOSTS=${allowed_hosts}
 DJANGO_CSRF_TRUSTED_ORIGINS=${csrf_trusted}
 DJANGO_STATIC_ROOT=${STATIC_DIR}
 DJANGO_MEDIA_ROOT=${MEDIA_DIR}
+DJANGO_SECURE_SSL_REDIRECT=0
+DJANGO_SESSION_COOKIE_SECURE=0
+DJANGO_CSRF_COOKIE_SECURE=0
 GUNICORN_WORKERS=${workers_default}
 EOF
 chmod 0640 "${DJANGO_ENV_FILE}"

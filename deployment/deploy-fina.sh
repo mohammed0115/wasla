@@ -1,14 +1,16 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-bash 00_env_check.sh
-bash 01_git_sync.sh
-bash 02_system_setup.sh
-bash 03_ocr_setup.sh
-bash 04_gunicorn_service.sh
-bash 05_nginx_setup.sh
-bash 06_ssl_setup.sh
-bash 07_monitoring.sh
-bash 08_notifications.sh
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "✅ Deployment Completed Successfully"
+bash "${here}/00_env_check.sh"
+bash "${here}/01_git_sync.sh"
+bash "${here}/02_system_setup.sh"
+bash "${here}/03_ocr_setup.sh"
+bash "${here}/04_gunicorn_service.sh"
+bash "${here}/05_nginx_setup.sh"
+bash "${here}/06_ssl_setup.sh"
+bash "${here}/07_monitoring.sh"
+bash "${here}/08_notifications.sh"
+
+echo "OK: Deployment completed successfully."

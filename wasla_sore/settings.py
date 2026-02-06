@@ -186,6 +186,12 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": True,
 }
 
+# Reverse-proxy security (optional; controlled via env vars)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "0").strip().lower() in ("1", "true", "yes")
+SESSION_COOKIE_SECURE = os.getenv("DJANGO_SESSION_COOKIE_SECURE", "0").strip().lower() in ("1", "true", "yes")
+CSRF_COOKIE_SECURE = os.getenv("DJANGO_CSRF_COOKIE_SECURE", "0").strip().lower() in ("1", "true", "yes")
+
 # SMS (multi-gateway)
 SMS_DEFAULT_PROVIDER = os.getenv("SMS_DEFAULT_PROVIDER", "console").strip() or "console"
 SMS_DEFAULT_SENDER_NAME = os.getenv("SMS_DEFAULT_SENDER_NAME", "Wasla").strip() or "Wasla"

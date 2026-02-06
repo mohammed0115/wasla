@@ -137,4 +137,17 @@ fi
 
 timeout 12 curl -fsSLI "https://${DOMAIN_NAME}" >/dev/null || fail "SSL validation failed (HTTPS request failed)."
 
+ENV_DIR="/etc/${PROJECT_NAME}"
+DJANGO_ENV_FILE="${ENV_DIR}/django.env"
+SERVICE_NAME="gunicorn-${PROJECT_NAME}.service"
+if [[ -f "${DJANGO_ENV_FILE}" ]]; then
+  # Enable HTTPS-related security flags after SSL is live.
+  sed -i \
+    -e 's/^DJANGO_SECURE_SSL_REDIRECT=.*/DJANGO_SECURE_SSL_REDIRECT=1/' \
+    -e 's/^DJANGO_SESSION_COOKIE_SECURE=.*/DJANGO_SESSION_COOKIE_SECURE=1/' \
+    -e 's/^DJANGO_CSRF_COOKIE_SECURE=.*/DJANGO_CSRF_COOKIE_SECURE=1/' \
+    "${DJANGO_ENV_FILE}" || true
+  systemctl restart "${SERVICE_NAME}" || true
+fi
+
 echo "OK: SSL installed and HTTPS is healthy for ${DOMAIN_NAME}."

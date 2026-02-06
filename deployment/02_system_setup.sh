@@ -65,15 +65,15 @@ fi
 if [[ -n "${requirements_file}" ]]; then
   "${VENV_PATH}/bin/pip" install -r "${requirements_file}"
 else
-  # Pinned minimal dependencies for this repository.
+  # Minimal dependencies for this repository (use ranges to avoid broken pins).
   "${VENV_PATH}/bin/pip" install \
-    "Django==5.1.15" \
-    "djangorestframework==3.15.2" \
-    "djangorestframework-simplejwt==5.3.1" \
-    "Pillow==12.1.0" \
-    "requests==2.32.5" \
-    "gunicorn==21.2.0" \
-    "psycopg2-binary==2.9.9"
+    "Django>=5.1,<5.3" \
+    "djangorestframework>=3.15,<3.17" \
+    "djangorestframework-simplejwt>=5.3,<6" \
+    "Pillow>=10,<13" \
+    "requests>=2.31,<3" \
+    "gunicorn>=21,<23" \
+    "psycopg2-binary>=2.9,<3"
 fi
 
 "${VENV_PATH}/bin/python" -m pip check

@@ -56,10 +56,9 @@ log "Fetching latest..."
 git fetch --prune origin 2>&1 | tee -a "${LOG_FILE}" >/dev/null
 
 log "Resetting to origin/${GIT_BRANCH}..."
-git checkout -f "${GIT_BRANCH}" 2>&1 | tee -a "${LOG_FILE}" >/dev/null || true
+git checkout -B "${GIT_BRANCH}" "origin/${GIT_BRANCH}" 2>&1 | tee -a "${LOG_FILE}" >/dev/null
 git reset --hard "origin/${GIT_BRANCH}" 2>&1 | tee -a "${LOG_FILE}" >/dev/null
 git clean -fd 2>&1 | tee -a "${LOG_FILE}" >/dev/null
 
 log "Git sync completed: $(git rev-parse --short HEAD)"
 log "=== Git sync finished ==="
-
