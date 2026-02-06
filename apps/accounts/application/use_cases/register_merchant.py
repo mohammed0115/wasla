@@ -72,7 +72,6 @@ class RegisterMerchantUseCase:
             metadata={"email": email, "phone": phone},
         )
 
-        otp_required = False
+        otp_required = True
         _ = MerchantAuthStateMachine.next_step_after_register(otp_required=otp_required)
         return RegisterMerchantResult(user=user, otp_required=otp_required)
-

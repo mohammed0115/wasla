@@ -33,6 +33,7 @@ DEBUG = os.getenv("DJANGO_DEBUG", "1").strip().lower() in ("1", "true", "yes")
 ALLOWED_HOSTS = [
         "w-sala.com",
         "www.w-sala.com",
+        
         "76.13.143.149",
         "localhost",
         "127.0.0.1"
@@ -155,6 +156,18 @@ STATIC_ROOT = Path(os.getenv("DJANGO_STATIC_ROOT", str(BASE_DIR / "staticfiles")
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.getenv("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
+
+EMAIL_BACKEND = os.getenv(
+    "DJANGO_EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+).strip()
+EMAIL_HOST = os.getenv("DJANGO_EMAIL_HOST", "localhost").strip() or "localhost"
+EMAIL_PORT = int(os.getenv("DJANGO_EMAIL_PORT", "25") or "25")
+EMAIL_HOST_USER = os.getenv("DJANGO_EMAIL_HOST_USER", "").strip()
+EMAIL_HOST_PASSWORD = os.getenv("DJANGO_EMAIL_HOST_PASSWORD", "").strip()
+EMAIL_USE_TLS = os.getenv("DJANGO_EMAIL_USE_TLS", "0").strip().lower() in ("1", "true", "yes")
+EMAIL_USE_SSL = os.getenv("DJANGO_EMAIL_USE_SSL", "0").strip().lower() in ("1", "true", "yes")
+DEFAULT_FROM_EMAIL = os.getenv("DJANGO_DEFAULT_FROM_EMAIL", "no-reply@wasla.local").strip() or "no-reply@wasla.local"
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"

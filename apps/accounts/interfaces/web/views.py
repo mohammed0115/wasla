@@ -24,6 +24,8 @@ from apps.accounts.domain.errors import (
 )
 from apps.accounts.domain.post_auth_state_machine import MerchantNextStep
 from apps.accounts.interfaces.web.forms import MerchantLoginForm, MerchantSignupForm
+from apps.accounts.application.use_cases.request_email_otp import RequestEmailOtpCommand, RequestEmailOtpUseCase
+from apps.accounts.application.use_cases.verify_email_otp import VerifyEmailOtpCommand, VerifyEmailOtpUseCase
 
 
 def _client_ip(request: HttpRequest) -> str | None:
@@ -42,6 +44,8 @@ def _login_user(request: HttpRequest, user: object) -> None:
 
 
 def _next_step_url(step: MerchantNextStep) -> str:
+    if step == MerchantNextStep.OTP_VERIFY:
+        return reverse("auth:otp_verify")
     if step == MerchantNextStep.DASHBOARD:
         return reverse("web:dashboard")
     if step == MerchantNextStep.ONBOARDING_COUNTRY:
@@ -135,3 +139,34 @@ def signup_view(request: HttpRequest) -> HttpResponse:
 def logout_view(request: HttpRequest) -> HttpResponse:
     logout(request)
     return redirect("login")
+
+
+@require_http_methods(["GET", "POST"])
+def otp_verify_view(request: HttpRequest) -> HttpResponse:
+    if not request.user.is_authenticated:
+        return redirect(reverse("auth:login"))
+
+    if request.method == "POST":
+        action = (request.POST.get("action") or "verify").strip()
+        if action == "request":
+            try:
+                _ = RequestEmailOtpUseCase.execute(RequestEmailOtpCommand(user=request.user))
+            except ValueError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, "OTP sent to your email.")
+            return redirect(reverse("auth:otp_verify"))
+
+        code = (request.POST.get("code") or "").strip()
+        try:
+            _ = VerifyEmailOtpUseCase.execute(VerifyEmailOtpCommand(user=request.user, code=code))
+        except ValueError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, "Email verified successfully.")
+            step = ResolveMerchantNextStepUseCase.execute(
+                ResolveMerchantNextStepCommand(user=request.user, otp_required=False)
+            ).step
+            return redirect(_next_step_url(step))
+
+    return render(request, "registration/otp_verify.html", {})

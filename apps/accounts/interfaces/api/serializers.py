@@ -25,3 +25,20 @@ class SelectBusinessTypesSerializer(serializers.Serializer):
         child=serializers.CharField(max_length=64),
         allow_empty=False,
     )
+
+
+class OtpRequestSerializer(serializers.Serializer):
+    purpose = serializers.ChoiceField(
+        choices=["email_verify", "password_reset"],
+        default="email_verify",
+        required=False,
+    )
+
+
+class OtpVerifySerializer(serializers.Serializer):
+    purpose = serializers.ChoiceField(
+        choices=["email_verify", "password_reset"],
+        default="email_verify",
+        required=False,
+    )
+    code = serializers.CharField(max_length=12)

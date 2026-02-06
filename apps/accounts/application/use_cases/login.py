@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate
 
 from apps.accounts.domain.errors import InvalidCredentialsError
 from apps.accounts.domain.state_machine import MerchantAuthStateMachine
+from apps.accounts.models import AccountProfile
 from apps.tenants.models import StoreProfile, TenantMembership
 
 
@@ -45,6 +46,7 @@ class LoginUseCase:
             ).exists()
             or StoreProfile.objects.filter(owner=user, tenant__is_active=True).exists()
         )
-        otp_required = False
+        profile = AccountProfile.objects.filter(user=user).first()
+        otp_required = bool(profile and profile.email_verified_at is None)
         _ = MerchantAuthStateMachine.next_step_after_login(otp_required=otp_required, has_store=has_store)
         return LoginResult(user=user, otp_required=otp_required, has_store=has_store)

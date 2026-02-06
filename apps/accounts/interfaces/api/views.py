@@ -22,6 +22,8 @@ from apps.accounts.domain.post_auth_state_machine import MerchantNextStep
 from apps.accounts.interfaces.api.serializers import (
     LoginSerializer,
     MerchantRegisterSerializer,
+    OtpRequestSerializer,
+    OtpVerifySerializer,
     SelectBusinessTypesSerializer,
     SelectCountrySerializer,
 )
@@ -31,6 +33,8 @@ from apps.accounts.application.use_cases.select_business_types import (
     SelectBusinessTypesCommand,
     SelectBusinessTypesUseCase,
 )
+from apps.accounts.application.use_cases.request_email_otp import RequestEmailOtpCommand, RequestEmailOtpUseCase
+from apps.accounts.application.use_cases.verify_email_otp import VerifyEmailOtpCommand, VerifyEmailOtpUseCase
 
 
 def _client_ip(request) -> str | None:
@@ -52,6 +56,8 @@ def _error(*, message: str, field: str | None = None, http_status: int = 400) ->
 
 
 def _next_step_url(*, step: MerchantNextStep) -> str:
+    if step == MerchantNextStep.OTP_VERIFY:
+        return reverse("auth:otp_verify")
     if step == MerchantNextStep.DASHBOARD:
         return reverse("web:dashboard")
     if step == MerchantNextStep.ONBOARDING_COUNTRY:
@@ -222,3 +228,58 @@ class SelectBusinessTypesAPI(APIView):
 
         next_step = reverse("web:dashboard_setup_store")
         return _success(data={"business_types": result.business_types}, next_step=next_step)
+
+
+class OtpRequestAPI(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        serializer = OtpRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return _error(message="Invalid input.", http_status=status.HTTP_400_BAD_REQUEST)
+        try:
+            result = RequestEmailOtpUseCase.execute(
+                RequestEmailOtpCommand(
+                    user=request.user,
+                    purpose=serializer.validated_data["purpose"],
+                )
+            )
+        except ValueError as exc:
+            return _error(message=str(exc), http_status=status.HTTP_400_BAD_REQUEST)
+
+        return _success(
+            data={"otp_id": result.otp_id, "expires_at": str(result.expires_at)},
+            next_step=reverse("auth:otp_verify"),
+            http_status=status.HTTP_201_CREATED,
+        )
+
+
+class OtpVerifyAPI(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        serializer = OtpVerifySerializer(data=request.data)
+        if not serializer.is_valid():
+            return _error(message="Invalid input.", http_status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            _ = VerifyEmailOtpUseCase.execute(
+                VerifyEmailOtpCommand(
+                    user=request.user,
+                    purpose=serializer.validated_data["purpose"],
+                    code=serializer.validated_data["code"],
+                )
+            )
+        except ValueError as exc:
+            return _error(message=str(exc), http_status=status.HTTP_400_BAD_REQUEST)
+
+        next_step = _next_step_url(
+            step=ResolveMerchantNextStepUseCase.execute(
+                ResolveMerchantNextStepCommand(user=request.user, otp_required=False)
+            ).step
+        )
+        return _success(data={"verified": True}, next_step=next_step)

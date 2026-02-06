@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.accounts.models import AccountProfile
@@ -32,7 +33,7 @@ class AccountsAuthApiTests(TestCase):
         self.assertIn("next_step", payload)
         self.assertIn("access", payload["data"])
         self.assertIn("refresh", payload["data"])
-        self.assertEqual(payload["next_step"], reverse("onboarding:country"))
+        self.assertEqual(payload["next_step"], reverse("auth:otp_verify"))
 
         user = get_user_model().objects.get(pk=payload["data"]["user_id"])
         self.assertEqual(user.email, "merchant1@example.com")
@@ -52,7 +53,7 @@ class AccountsAuthApiTests(TestCase):
         phone_payload = phone_login.json()
         self.assertTrue(phone_payload["success"])
         self.assertIn("access", phone_payload["data"])
-        self.assertEqual(phone_payload["next_step"], reverse("onboarding:country"))
+        self.assertEqual(phone_payload["next_step"], reverse("auth:otp_verify"))
 
         email_login = self.client.post(
             "/api/auth/login/",
@@ -63,7 +64,41 @@ class AccountsAuthApiTests(TestCase):
         email_payload = email_login.json()
         self.assertTrue(email_payload["success"])
         self.assertIn("access", email_payload["data"])
-        self.assertEqual(email_payload["next_step"], reverse("onboarding:country"))
+        self.assertEqual(email_payload["next_step"], reverse("auth:otp_verify"))
+
+    def test_email_otp_request_and_verify(self):
+        import re
+
+        from django.core import mail
+
+        User = get_user_model()
+        user = User.objects.create_user(username="0500000010", email="merchant10@example.com", password="StrongPass12345!")
+        AccountProfile.objects.create(user=user, full_name="Merchant Ten", phone="0500000010")
+
+        self.client.force_authenticate(user=user)
+
+        with self.captureOnCommitCallbacks(execute=True):
+            req = self.client.post("/api/auth/otp/request/", data={"purpose": "email_verify"}, format="json")
+        self.assertEqual(req.status_code, 201)
+        self.assertTrue(req.json()["success"])
+        self.assertEqual(len(mail.outbox), 1)
+
+        email = mail.outbox[-1]
+        body = (email.body or "") + "\n" + "".join(a[0] for a in getattr(email, "alternatives", []) or [])
+        code_match = re.search(r"\b\d{6}\b", body)
+        self.assertIsNotNone(code_match)
+        code = code_match.group(0)
+
+        verify = self.client.post("/api/auth/otp/verify/", data={"purpose": "email_verify", "code": code}, format="json")
+        self.assertEqual(verify.status_code, 200)
+        payload = verify.json()
+        self.assertTrue(payload["success"])
+        self.assertTrue(payload["data"]["verified"])
+        self.assertEqual(payload["next_step"], reverse("onboarding:country"))
+
+        profile = AccountProfile.objects.get(user=user)
+        self.assertIsNotNone(profile.email_verified_at)
+        self.assertLess(profile.email_verified_at, timezone.now() + timezone.timedelta(seconds=5))
 
     def test_onboarding_apis_save_state(self):
         User = get_user_model()
@@ -114,4 +149,4 @@ class AccountsAuthWebTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn("_auth_user_id", self.client.session)
-        self.assertContains(response, "اختر دولتك")
+        self.assertContains(response, "تأكيد البريد الإلكتروني")

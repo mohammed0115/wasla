@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import os
 from dataclasses import asdict
 from typing import Any
 
+from django.conf import settings
 from django.db import transaction
 
 from apps.emails.application.services.provider_resolver import TenantEmailProviderResolver
@@ -29,6 +31,11 @@ def enqueue_send_email(*, email_log_id: int, tenant_id: int, provider: str, mess
     """
     Enqueue if Celery is installed; otherwise send synchronously.
     """
+    eager = (
+        getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False)
+        or os.getenv("CELERY_TASK_ALWAYS_EAGER", "").strip().lower() in ("1", "true", "yes")
+    )
+    broker_url = (getattr(settings, "CELERY_BROKER_URL", "") or os.getenv("CELERY_BROKER_URL", "")).strip()
     try:
         from celery import shared_task  # noqa: F401
     except Exception:
@@ -38,12 +45,26 @@ def enqueue_send_email(*, email_log_id: int, tenant_id: int, provider: str, mess
             SendEmailUseCase.mark_failed(email_log_id=email_log_id, error=str(exc))
         return
 
-    send_email_task.delay(
-        email_log_id=email_log_id,
-        tenant_id=tenant_id,
-        provider=provider,
-        message_dict=asdict(message),
-    )
+    if eager or not broker_url:
+        try:
+            _send_email_now(email_log_id=email_log_id, tenant_id=tenant_id, provider=provider, message=message)
+        except Exception as exc:
+            SendEmailUseCase.mark_failed(email_log_id=email_log_id, error=str(exc))
+        return
+
+    try:
+        send_email_task.delay(
+            email_log_id=email_log_id,
+            tenant_id=tenant_id,
+            provider=provider,
+            message_dict=asdict(message),
+        )
+    except Exception:
+        # Broker misconfigured/unavailable; fallback to synchronous send.
+        try:
+            _send_email_now(email_log_id=email_log_id, tenant_id=tenant_id, provider=provider, message=message)
+        except Exception as exc:
+            SendEmailUseCase.mark_failed(email_log_id=email_log_id, error=str(exc))
 
 
 try:

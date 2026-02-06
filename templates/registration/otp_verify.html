@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4" dir="rtl">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h4 class="mb-3">تأكيد البريد الإلكتروني</h4>
+
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" class="mb-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="verify" />
+            <div class="mb-3">
+              <label class="form-label">رمز التحقق (OTP)</label>
+              <input name="code" class="form-control" placeholder="مثال: 123456" />
+              <div class="form-text">الرمز صالح لمدة 10 دقائق.</div>
+            </div>
+            <button class="btn btn-primary w-100" type="submit">تأكيد</button>
+          </form>
+
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="request" />
+            <button class="btn btn-outline-secondary w-100" type="submit">إعادة إرسال الرمز</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
