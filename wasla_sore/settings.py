@@ -31,7 +31,8 @@ SECRET_KEY = os.getenv(
 DEBUG = os.getenv("DJANGO_DEBUG", "1").strip().lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = [
-    
+        "w-sala.com",
+        "www.w-sala.com",
         "76.13.143.149",
         "localhost",
         "127.0.0.1"
