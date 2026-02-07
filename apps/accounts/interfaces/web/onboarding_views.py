@@ -16,6 +16,10 @@ from apps.accounts.application.use_cases.select_business_types import (
     SelectBusinessTypesUseCase,
 )
 from apps.accounts.application.use_cases.select_country import SelectCountryCommand, SelectCountryUseCase
+from apps.accounts.application.use_cases.create_store_from_onboarding import (
+    CreateStoreFromOnboardingCommand,
+    CreateStoreFromOnboardingUseCase,
+)
 from apps.accounts.domain.errors import AccountValidationError
 from apps.accounts.domain.onboarding_policies import BUSINESS_TYPE_OPTIONS, COUNTRY_OPTIONS
 from apps.accounts.domain.post_auth_state_machine import MerchantNextStep
@@ -99,7 +103,7 @@ def business_types(request: HttpRequest) -> HttpResponse:
             messages.error(request, str(exc))
         else:
             selected = result.business_types
-            return redirect("web:dashboard_setup_store")
+            return redirect("onboarding:store")
 
     return render(
         request,
@@ -107,3 +111,23 @@ def business_types(request: HttpRequest) -> HttpResponse:
         {"options": BUSINESS_TYPE_OPTIONS, "selected": selected, "min": 1, "max": 5},
     )
 
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def store(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        try:
+            result = CreateStoreFromOnboardingUseCase.execute(
+                CreateStoreFromOnboardingCommand(
+                    user=request.user,
+                    name=request.POST.get("name", ""),
+                    slug=request.POST.get("slug", ""),
+                )
+            )
+        except AccountValidationError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, "Store created successfully.")
+            return redirect("web:dashboard")
+
+    return render(request, "onboarding/store.html", {})

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from django.contrib.auth.models import AbstractBaseUser
 
 from apps.accounts.domain.post_auth_state_machine import MerchantNextStep, MerchantPostAuthStateMachine
-from apps.accounts.models import AccountProfile
+from apps.accounts.models import AccountProfile, OnboardingProfile
 from apps.tenants.models import StoreProfile, TenantMembership
 
 
@@ -38,12 +38,23 @@ class ResolveMerchantNextStepUseCase:
         profile = AccountProfile.objects.filter(user=cmd.user).first()
         country_selected = bool(profile and (profile.country or "").strip())
         business_types_selected = bool(profile and (profile.business_types or []))
+        profile_complete = bool(
+            profile
+            and (profile.full_name or "").strip()
+            and (profile.phone or "").strip()
+            and profile.accepted_terms_at
+            and (getattr(cmd.user, "email", "") or "").strip()
+        )
+        onboarding = OnboardingProfile.objects.filter(user=cmd.user).first()
+        if onboarding and onboarding.step == OnboardingProfile.STEP_DONE:
+            country_selected = True
+            business_types_selected = True
 
         step = MerchantPostAuthStateMachine.resolve(
+            profile_complete=profile_complete,
             otp_required=bool(cmd.otp_required),
             has_store=has_store,
             country_selected=country_selected,
             business_types_selected=business_types_selected,
         )
         return ResolveMerchantNextStepResult(step=step)
-

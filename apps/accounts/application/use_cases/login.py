@@ -47,6 +47,7 @@ class LoginUseCase:
             or StoreProfile.objects.filter(owner=user, tenant__is_active=True).exists()
         )
         profile = AccountProfile.objects.filter(user=user).first()
-        otp_required = bool(profile and profile.email_verified_at is None)
+        has_email = bool((getattr(user, "email", "") or "").strip())
+        otp_required = bool(profile and has_email and profile.email_verified_at is None)
         _ = MerchantAuthStateMachine.next_step_after_login(otp_required=otp_required, has_store=has_store)
         return LoginResult(user=user, otp_required=otp_required, has_store=has_store)

@@ -1,0 +1,54 @@
+{% extends "layouts/auth_base.html" %}
+{% block title %}إكمال البيانات | Wasla{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-3">أكمل بيانات الحساب</h5>
+
+        <form method="post">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors|striptags }}</div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label">{{ form.full_name.label }}</label>
+            {{ form.full_name }}
+            {% if form.full_name.errors %}<div class="text-danger small mt-1">{{ form.full_name.errors|striptags }}</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{{ form.phone.label }}</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors|striptags }}</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{{ form.email.label }}</label>
+            {{ form.email }}
+            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{{ form.password.label }}</label>
+            {{ form.password }}
+            {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors|striptags }}</div>{% endif %}
+          </div>
+
+          <div class="form-check mb-3">
+            {{ form.accept_terms }}
+            <label class="form-check-label">{{ form.accept_terms.label }}</label>
+            {% if form.accept_terms.errors %}<div class="text-danger small mt-1">{{ form.accept_terms.errors|striptags }}</div>{% endif %}
+          </div>
+
+          <button class="btn btn-primary w-100" type="submit">متابعة</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

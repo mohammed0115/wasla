@@ -1,0 +1,29 @@
+{% extends "layouts/auth_base.html" %}
+{% block title %}تحقق من الرمز | Wasla{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-3">تحقق من الرمز</h5>
+        {% if identifier %}
+          <div class="text-muted small mb-3">تم إرسال الرمز إلى: {{ identifier }}</div>
+        {% endif %}
+        <form method="post" action="{% url 'auth:verify' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">{{ form.code.label }}</label>
+            {{ form.code }}
+            {% if form.code.errors %}<div class="text-danger small mt-1">{{ form.code.errors|striptags }}</div>{% endif %}
+          </div>
+          <button class="btn btn-primary w-100" type="submit">تحقق</button>
+        </form>
+        <div class="text-center mt-3">
+          <a href="{% url 'auth:start' %}">إعادة إرسال الرمز</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

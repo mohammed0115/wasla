@@ -6,6 +6,7 @@ from apps.accounts.domain.onboarding_state_machine import MerchantOnboardingStat
 
 
 class MerchantNextStep(StrEnum):
+    COMPLETE_PROFILE = "complete_profile"
     OTP_VERIFY = "otp_verify"
     DASHBOARD = "dashboard"
     ONBOARDING_COUNTRY = "onboarding_country"
@@ -17,11 +18,14 @@ class MerchantPostAuthStateMachine:
     @staticmethod
     def resolve(
         *,
+        profile_complete: bool,
         otp_required: bool,
         has_store: bool,
         country_selected: bool,
         business_types_selected: bool,
     ) -> MerchantNextStep:
+        if not profile_complete:
+            return MerchantNextStep.COMPLETE_PROFILE
         if otp_required:
             return MerchantNextStep.OTP_VERIFY
         step = MerchantOnboardingStateMachine.resolve_next_step(
@@ -36,4 +40,3 @@ class MerchantPostAuthStateMachine:
         if step == OnboardingStep.BUSINESS_TYPES:
             return MerchantNextStep.ONBOARDING_BUSINESS_TYPES
         return MerchantNextStep.STORE_CREATE
-

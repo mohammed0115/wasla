@@ -29,6 +29,8 @@ SECRET_KEY = os.getenv(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "1").strip().lower() in ("1", "true", "yes")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower() or "development"
+TEST_OTP_CODE = os.getenv("TEST_OTP_CODE", "12345").strip() or "12345"
 
 ALLOWED_HOSTS = [
         "w-sala.com",
@@ -83,6 +85,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.accounts.middleware.OnboardingRedirectMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -193,6 +196,11 @@ REST_FRAMEWORK = {
     },
 }
 
+OTP_PROVIDER_REGISTRY = {
+    "email": "apps.accounts.infrastructure.otp_providers.email.EmailOtpProvider",
+    "sms": "apps.accounts.infrastructure.otp_providers.sms.SmsOtpProvider",
+}
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -223,6 +231,11 @@ SMS_PROVIDERS = {
         "timeout_seconds": int(os.getenv("SMS_TAQNYAT_TIMEOUT_SECONDS", "10") or "10"),
         "include_bearer_as_query_param": (os.getenv("SMS_TAQNYAT_INCLUDE_QUERY_TOKEN", "0").strip().lower() in ("1", "true", "yes")),
     },
+}
+
+OTP_PROVIDER_REGISTRY = {
+    "email": "apps.accounts.infrastructure.otp_providers.email.EmailOtpProvider",
+    "sms": "apps.accounts.infrastructure.otp_providers.sms.SmsOtpProvider",
 }
 
 # Default primary key field type

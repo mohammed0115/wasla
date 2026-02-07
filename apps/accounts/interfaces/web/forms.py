@@ -37,6 +37,15 @@ class MerchantLoginForm(forms.Form):
                 self.fields[field_name].widget.attrs.setdefault("class", "form-control")
 
 
+class AuthStartForm(forms.Form):
+    identifier = forms.CharField(max_length=254, label="البريد الإلكتروني أو الجوال")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "identifier" in self.fields:
+            self.fields["identifier"].widget.attrs.setdefault("class", "form-control")
+
+
 class OtpLoginRequestForm(forms.Form):
     identifier = forms.CharField(max_length=254, label="Ø§Ù„Ø¬ÙˆØ§Ù„ Ø£Ùˆ Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ")
 

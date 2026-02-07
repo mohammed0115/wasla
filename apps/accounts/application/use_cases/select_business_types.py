@@ -6,7 +6,11 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.db import transaction
 
 from apps.accounts.domain.onboarding_policies import validate_business_types_selection
-from apps.accounts.models import AccountProfile
+from apps.accounts.models import AccountProfile, OnboardingProfile
+from apps.accounts.application.use_cases.ensure_onboarding_step import (
+    EnsureOnboardingStepCommand,
+    EnsureOnboardingStepUseCase,
+)
 from apps.accounts.services.audit_service import AccountAuditService
 
 
@@ -34,10 +38,13 @@ class SelectBusinessTypesUseCase:
 
         profile, _created = AccountProfile.objects.get_or_create(
             user=cmd.user,
-            defaults={"phone": getattr(cmd.user, "username", ""), "full_name": ""},
+            defaults={"full_name": ""},
         )
         profile.business_types = business_types
         profile.save(update_fields=["business_types"])
+        EnsureOnboardingStepUseCase.execute(
+            EnsureOnboardingStepCommand(user=cmd.user, target_step=OnboardingProfile.STEP_BUSINESS)
+        )
 
         AccountAuditService.record_action(
             user=cmd.user,
@@ -48,4 +55,3 @@ class SelectBusinessTypesUseCase:
         )
 
         return SelectBusinessTypesResult(business_types=business_types)
-

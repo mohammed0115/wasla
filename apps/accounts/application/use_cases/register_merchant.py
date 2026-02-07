@@ -11,7 +11,7 @@ from django.utils import timezone
 from apps.accounts.domain.errors import AccountAlreadyExistsError, AccountValidationError
 from apps.accounts.domain.policies import ensure_terms_accepted, validate_email, validate_full_name, validate_phone
 from apps.accounts.domain.state_machine import MerchantAuthStateMachine
-from apps.accounts.models import AccountProfile
+from apps.accounts.models import AccountProfile, OnboardingProfile
 from apps.accounts.services.audit_service import AccountAuditService
 
 
@@ -63,6 +63,7 @@ class RegisterMerchantUseCase:
             phone=phone,
             accepted_terms_at=timezone.now(),
         )
+        OnboardingProfile.objects.get_or_create(user=user, defaults={"step": OnboardingProfile.STEP_REGISTERED})
 
         AccountAuditService.record_action(
             user=user,
