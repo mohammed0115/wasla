@@ -35,3 +35,21 @@ class MerchantLoginForm(forms.Form):
         for field_name in ["identifier", "password"]:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs.setdefault("class", "form-control")
+
+
+class OtpLoginRequestForm(forms.Form):
+    identifier = forms.CharField(max_length=254, label="Ø§Ù„Ø¬ÙˆØ§Ù„ Ø£Ùˆ Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "identifier" in self.fields:
+            self.fields["identifier"].widget.attrs.setdefault("class", "form-control")
+
+
+class OtpLoginVerifyForm(forms.Form):
+    code = forms.CharField(max_length=12, label="Ø±Ù…Ø² Ø§Ù„ØªØ­Ù‚Ù‚")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "code" in self.fields:
+            self.fields["code"].widget.attrs.setdefault("class", "form-control")

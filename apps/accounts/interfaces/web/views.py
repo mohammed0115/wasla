@@ -23,9 +23,17 @@ from apps.accounts.domain.errors import (
     InvalidCredentialsError,
 )
 from apps.accounts.domain.post_auth_state_machine import MerchantNextStep
-from apps.accounts.interfaces.web.forms import MerchantLoginForm, MerchantSignupForm
+from apps.accounts.interfaces.web.forms import (
+    MerchantLoginForm,
+    MerchantSignupForm,
+    OtpLoginRequestForm,
+    OtpLoginVerifyForm,
+)
 from apps.accounts.application.use_cases.request_email_otp import RequestEmailOtpCommand, RequestEmailOtpUseCase
 from apps.accounts.application.use_cases.verify_email_otp import VerifyEmailOtpCommand, VerifyEmailOtpUseCase
+from apps.accounts.application.use_cases.request_login_otp import RequestLoginOtpCommand, RequestLoginOtpUseCase
+from apps.accounts.application.use_cases.verify_login_otp import VerifyLoginOtpCommand, VerifyLoginOtpUseCase
+from apps.accounts.domain.errors import AccountNotFoundError
 
 
 def _client_ip(request: HttpRequest) -> str | None:
@@ -170,3 +178,52 @@ def otp_verify_view(request: HttpRequest) -> HttpResponse:
             return redirect(_next_step_url(step))
 
     return render(request, "registration/otp_verify.html", {})
+
+
+@require_http_methods(["GET", "POST"])
+def otp_login_view(request: HttpRequest) -> HttpResponse:
+    if request.user.is_authenticated:
+        return redirect("web:dashboard")
+
+    request_form = OtpLoginRequestForm(request.POST or None)
+    verify_form = OtpLoginVerifyForm(request.POST or None)
+    identifier = request.session.get("otp_login_identifier", "")
+
+    if request.method == "POST":
+        action = (request.POST.get("action") or "request").strip()
+        if action == "request" and request_form.is_valid():
+            try:
+                _ = RequestLoginOtpUseCase.execute(
+                    RequestLoginOtpCommand(identifier=request_form.cleaned_data["identifier"])
+                )
+            except (AccountNotFoundError, AccountValidationError, ValueError) as exc:
+                messages.error(request, str(exc))
+            else:
+                request.session["otp_login_identifier"] = request_form.cleaned_data["identifier"]
+                messages.success(request, "OTP sent to your email.")
+            return redirect(reverse("auth:otp_login"))
+
+        if action == "verify" and verify_form.is_valid():
+            if not identifier:
+                messages.error(request, "Please request an OTP first.")
+                return redirect(reverse("auth:otp_login"))
+            try:
+                result = VerifyLoginOtpUseCase.execute(
+                    VerifyLoginOtpCommand(identifier=identifier, code=verify_form.cleaned_data["code"])
+                )
+            except ValueError as exc:
+                messages.error(request, str(exc))
+            else:
+                _login_user(request, result.user)
+                request.session.pop("otp_login_identifier", None)
+                messages.success(request, "Logged in successfully.")
+                step = ResolveMerchantNextStepUseCase.execute(
+                    ResolveMerchantNextStepCommand(user=result.user, otp_required=False)
+                ).step
+                return redirect(_next_step_url(step))
+
+    return render(
+        request,
+        "registration/otp_login.html",
+        {"request_form": request_form, "verify_form": verify_form, "identifier": identifier},
+    )

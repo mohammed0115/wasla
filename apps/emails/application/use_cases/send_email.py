@@ -9,6 +9,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.emails.application.services.provider_resolver import TenantEmailProviderResolver
+from apps.emails.application.services.provider_resolver import EmailProviderNotConfigured
 from apps.emails.domain.policies import normalize_subject, normalize_template_key, validate_recipient_email
 from apps.emails.domain.types import EmailMessage
 from apps.emails.models import EmailLog
@@ -41,16 +42,39 @@ class SendEmailUseCase:
         to_email = validate_recipient_email(cmd.to_email)
         template_key = normalize_template_key(cmd.template_key)
 
-        resolved = TenantEmailProviderResolver.resolve(tenant_id=cmd.tenant_id)
-        rendered = resolved.renderer.render(template_key=template_key, context=dict(cmd.context))
-        subject = normalize_subject(rendered.subject)
-
         idempotency_key = (cmd.idempotency_key or "").strip() or SendEmailUseCase._compute_idempotency_key(
             tenant_id=cmd.tenant_id,
             to_email=to_email,
             template_key=template_key,
             context=cmd.context,
         )
+
+        try:
+            resolved = TenantEmailProviderResolver.resolve(tenant_id=cmd.tenant_id)
+        except EmailProviderNotConfigured as exc:
+            with transaction.atomic():
+                existing = (
+                    EmailLog.objects.select_for_update()
+                    .filter(tenant_id=cmd.tenant_id, idempotency_key=idempotency_key)
+                    .first()
+                )
+                if existing:
+                    return existing
+
+                return EmailLog.objects.create(
+                    tenant_id=cmd.tenant_id,
+                    to_email=to_email,
+                    template_key=template_key,
+                    subject=template_key,
+                    status=EmailLog.STATUS_FAILED,
+                    provider="",
+                    idempotency_key=idempotency_key,
+                    last_error=str(exc),
+                    metadata=dict(cmd.metadata or {}),
+                )
+
+        rendered = resolved.renderer.render(template_key=template_key, context=dict(cmd.context))
+        subject = normalize_subject(rendered.subject)
 
         with transaction.atomic():
             existing = (

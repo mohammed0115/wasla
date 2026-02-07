@@ -17,11 +17,18 @@ from apps.accounts.application.use_cases.register_merchant import (
     RegisterMerchantCommand,
     RegisterMerchantUseCase,
 )
-from apps.accounts.domain.errors import AccountAlreadyExistsError, AccountValidationError, InvalidCredentialsError
+from apps.accounts.domain.errors import (
+    AccountAlreadyExistsError,
+    AccountNotFoundError,
+    AccountValidationError,
+    InvalidCredentialsError,
+)
 from apps.accounts.domain.post_auth_state_machine import MerchantNextStep
 from apps.accounts.interfaces.api.serializers import (
     LoginSerializer,
     MerchantRegisterSerializer,
+    OtpLoginRequestSerializer,
+    OtpLoginVerifySerializer,
     OtpRequestSerializer,
     OtpVerifySerializer,
     SelectBusinessTypesSerializer,
@@ -35,6 +42,8 @@ from apps.accounts.application.use_cases.select_business_types import (
 )
 from apps.accounts.application.use_cases.request_email_otp import RequestEmailOtpCommand, RequestEmailOtpUseCase
 from apps.accounts.application.use_cases.verify_email_otp import VerifyEmailOtpCommand, VerifyEmailOtpUseCase
+from apps.accounts.application.use_cases.request_login_otp import RequestLoginOtpCommand, RequestLoginOtpUseCase
+from apps.accounts.application.use_cases.verify_login_otp import VerifyLoginOtpCommand, VerifyLoginOtpUseCase
 
 
 def _client_ip(request) -> str | None:
@@ -283,3 +292,89 @@ class OtpVerifyAPI(APIView):
             ).step
         )
         return _success(data={"verified": True}, next_step=next_step)
+
+
+class OtpLoginRequestAPI(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        serializer = OtpLoginRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return _error(message="Invalid input.", http_status=status.HTTP_400_BAD_REQUEST)
+        identifier = serializer.validated_data["identifier"]
+
+        try:
+            result = RequestLoginOtpUseCase.execute(RequestLoginOtpCommand(identifier=identifier))
+        except AccountNotFoundError as exc:
+            return _error(message=str(exc), http_status=status.HTTP_404_NOT_FOUND)
+        except AccountValidationError as exc:
+            return _error(message=str(exc), field=getattr(exc, "field", None), http_status=status.HTTP_400_BAD_REQUEST)
+        except ValueError as exc:
+            return _error(message=str(exc), http_status=status.HTTP_400_BAD_REQUEST)
+
+        return _success(
+            data={"otp_id": result.otp_id, "expires_at": str(result.expires_at)},
+            next_step=reverse("api_auth_otp_login_verify"),
+            http_status=status.HTTP_201_CREATED,
+        )
+
+
+class OtpLoginVerifyAPI(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        serializer = OtpLoginVerifySerializer(data=request.data)
+        if not serializer.is_valid():
+            return _error(message="Invalid input.", http_status=status.HTTP_400_BAD_REQUEST)
+
+        ip_address = _client_ip(request)
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
+        identifier = serializer.validated_data["identifier"]
+
+        try:
+            result = VerifyLoginOtpUseCase.execute(
+                VerifyLoginOtpCommand(identifier=identifier, code=serializer.validated_data["code"])
+            )
+        except AccountNotFoundError as exc:
+            AccountAuditService.record_action(
+                user=None,
+                action=AccountAuditService.ACTION_LOGIN_FAILED,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                metadata={"identifier": identifier},
+            )
+            return _error(message=str(exc), http_status=status.HTTP_404_NOT_FOUND)
+        except ValueError as exc:
+            AccountAuditService.record_action(
+                user=None,
+                action=AccountAuditService.ACTION_LOGIN_FAILED,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                metadata={"identifier": identifier},
+            )
+            return _error(message=str(exc), http_status=status.HTTP_400_BAD_REQUEST)
+
+        AccountAuditService.record_action(
+            user=result.user,
+            action=AccountAuditService.ACTION_LOGIN_SUCCEEDED,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            metadata={"method": "otp"},
+        )
+
+        refresh = RefreshToken.for_user(result.user)
+        next_step = _next_step_url(
+            step=ResolveMerchantNextStepUseCase.execute(
+                ResolveMerchantNextStepCommand(user=result.user, otp_required=False)
+            ).step
+        )
+        return _success(
+            data={"user_id": result.user.id, "access": str(refresh.access_token), "refresh": str(refresh)},
+            next_step=next_step,
+        )

@@ -36,3 +36,6 @@ class AccountAlreadyExistsError(AccountDomainError):
 class InvalidCredentialsError(AccountDomainError):
     pass
 
+
+class AccountNotFoundError(AccountDomainError):
+    pass

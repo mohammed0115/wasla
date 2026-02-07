@@ -42,3 +42,12 @@ class OtpVerifySerializer(serializers.Serializer):
         required=False,
     )
     code = serializers.CharField(max_length=12)
+
+
+class OtpLoginRequestSerializer(serializers.Serializer):
+    identifier = serializers.CharField(max_length=254)
+
+
+class OtpLoginVerifySerializer(serializers.Serializer):
+    identifier = serializers.CharField(max_length=254)
+    code = serializers.CharField(max_length=12)

@@ -53,10 +53,12 @@ class AccountAuditLog(models.Model):
 class AccountEmailOtp(models.Model):
     PURPOSE_EMAIL_VERIFY = "email_verify"
     PURPOSE_PASSWORD_RESET = "password_reset"
+    PURPOSE_LOGIN = "login"
 
     PURPOSE_CHOICES = [
         (PURPOSE_EMAIL_VERIFY, "Email Verify"),
         (PURPOSE_PASSWORD_RESET, "Password Reset"),
+        (PURPOSE_LOGIN, "Login"),
     ]
 
     user = models.ForeignKey(

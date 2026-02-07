@@ -1,0 +1,44 @@
+{% extends "layouts/auth_base.html" %}
+{% block title %}تسجيل الدخول عبر رمز تحقق | Wasla{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-3">تسجيل الدخول عبر رمز تحقق</h5>
+
+        <form method="post" action="{% url 'auth:otp_login' %}" class="mb-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="request" />
+
+          <div class="mb-3">
+            <label class="form-label">{{ request_form.identifier.label }}</label>
+            {{ request_form.identifier }}
+            {% if request_form.identifier.errors %}<div class="text-danger small mt-1">{{ request_form.identifier.errors|striptags }}</div>{% endif %}
+          </div>
+
+          <button class="btn btn-outline-primary w-100" type="submit">إرسال الرمز</button>
+        </form>
+
+        <form method="post" action="{% url 'auth:otp_login' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="verify" />
+
+          <div class="mb-3">
+            <label class="form-label">{{ verify_form.code.label }}</label>
+            {{ verify_form.code }}
+            {% if verify_form.code.errors %}<div class="text-danger small mt-1">{{ verify_form.code.errors|striptags }}</div>{% endif %}
+          </div>
+
+          <button class="btn btn-primary w-100" type="submit">تأكيد الدخول</button>
+        </form>
+
+        <div class="text-center mt-3">
+          <a href="{% url 'login' %}">العودة لتسجيل الدخول بكلمة المرور</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
