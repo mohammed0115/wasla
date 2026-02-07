@@ -34,6 +34,53 @@ class TenantEmailSettings(models.Model):
         return f"TenantEmailSettings(tenant_id={self.tenant_id}, provider={self.provider})"
 
 
+class GlobalEmailSettings(models.Model):
+    PROVIDER_SMTP = "smtp"
+    PROVIDER_SENDGRID = "sendgrid"
+    PROVIDER_MAILGUN = "mailgun"
+    PROVIDER_SES = "ses"
+
+    PROVIDER_CHOICES = [
+        (PROVIDER_SMTP, "SMTP"),
+        (PROVIDER_SENDGRID, "SendGrid"),
+        (PROVIDER_MAILGUN, "Mailgun"),
+        (PROVIDER_SES, "AWS SES"),
+    ]
+
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default=PROVIDER_SMTP)
+    host = models.CharField(max_length=255, blank=True, default="")
+    port = models.PositiveIntegerField(default=587)
+    username = models.CharField(max_length=255, blank=True, default="")
+    password_encrypted = models.TextField(blank=True, default="")
+    from_email = models.EmailField(blank=True, default="")
+    use_tls = models.BooleanField(default=True)
+    enabled = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["provider", "enabled"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"GlobalEmailSettings(provider={self.provider}, enabled={self.enabled})"
+
+
+class GlobalEmailSettingsAuditLog(models.Model):
+    action = models.CharField(max_length=64)
+    actor = models.CharField(max_length=150, blank=True, default="system")
+    created_at = models.DateTimeField(auto_now_add=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["action", "created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"GlobalEmailSettingsAuditLog(action={self.action})"
+
+
 class EmailLog(models.Model):
     STATUS_QUEUED = "queued"
     STATUS_SENDING = "sending"
@@ -74,4 +121,3 @@ class EmailLog(models.Model):
 
     def __str__(self) -> str:
         return f"EmailLog(id={self.id}, tenant_id={self.tenant_id}, to={self.to_email}, status={self.status})"
-

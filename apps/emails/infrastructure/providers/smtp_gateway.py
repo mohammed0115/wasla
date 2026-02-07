@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import uuid
 
-from django.core.mail.backends.smtp import EmailBackend
-from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives, get_connection
 
 from apps.emails.domain.ports import EmailGatewayPort
 from apps.emails.domain.types import EmailMessage, EmailSendResult
@@ -39,20 +39,23 @@ class SmtpEmailGateway(EmailGatewayPort):
             from_header = f"{self._from_name} <{self._from_email}>"
 
         connection = None
-        if any(v is not None for v in (self._host, self._port, self._username, self._password, self._use_tls, self._use_ssl, self._timeout)):
-            connection_kwargs = {
-                "host": self._host,
-                "port": self._port,
-                "username": self._username,
-                "password": self._password,
-                "timeout": self._timeout,
-            }
-            connection_kwargs = {k: v for k, v in connection_kwargs.items() if v is not None}
-            if self._use_tls is not None:
-                connection_kwargs["use_tls"] = bool(self._use_tls)
-            if self._use_ssl is not None:
-                connection_kwargs["use_ssl"] = bool(self._use_ssl)
-            connection = EmailBackend(**connection_kwargs)
+        connection_kwargs = {
+            "host": self._host,
+            "port": self._port,
+            "username": self._username,
+            "password": self._password,
+            "timeout": self._timeout,
+        }
+        connection_kwargs = {k: v for k, v in connection_kwargs.items() if v is not None}
+        if self._use_tls is not None:
+            connection_kwargs["use_tls"] = bool(self._use_tls)
+        if self._use_ssl is not None:
+            connection_kwargs["use_ssl"] = bool(self._use_ssl)
+        backend = getattr(settings, "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+        if connection_kwargs:
+            connection = get_connection(backend=backend, **connection_kwargs)
+        else:
+            connection = get_connection(backend=backend)
 
         email = EmailMultiAlternatives(
             subject=message.subject,

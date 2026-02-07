@@ -3,11 +3,11 @@ from __future__ import annotations
 import os
 
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from apps.emails.application.services.crypto import CredentialCrypto
 from apps.emails.application.use_cases.send_email import SendEmailCommand, SendEmailUseCase
-from apps.emails.models import EmailLog, TenantEmailSettings
+from apps.emails.models import EmailLog, GlobalEmailSettings
 from apps.tenants.models import Tenant
 
 
@@ -15,14 +15,18 @@ class EmailGatewayTests(TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.tenant = Tenant.objects.create(slug="t1", name="T1", is_active=True, currency="SAR", language="ar")
-        TenantEmailSettings.objects.create(
-            tenant=self.tenant,
-            provider=TenantEmailSettings.PROVIDER_SMTP,
+        GlobalEmailSettings.objects.create(
+            provider=GlobalEmailSettings.PROVIDER_SMTP,
+            host="smtp.example.com",
+            port=587,
+            username="user@example.com",
+            password_encrypted=CredentialCrypto.encrypt_json({"password": "secret"}),
             from_email="no-reply@example.com",
-            from_name="Wasla",
-            is_enabled=True,
+            use_tls=True,
+            enabled=True,
         )
 
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_send_email_is_idempotent(self):
         self.assertEqual(len(mail.outbox), 0)
         cmd = SendEmailCommand(

@@ -1,43 +1,26 @@
-import json
-
 from django import forms
 from django.contrib import admin
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 
-from .models import EmailLog, TenantEmailSettings
+from .models import EmailLog, GlobalEmailSettings, GlobalEmailSettingsAuditLog, TenantEmailSettings
 from apps.emails.application.services.crypto import CredentialCrypto
 
 
-class TenantEmailSettingsAdminForm(forms.ModelForm):
-    credentials_json = forms.CharField(
+class GlobalEmailSettingsAdminForm(forms.ModelForm):
+    password = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={"rows": 10, "spellcheck": "false"}),
-        help_text="JSON credentials stored encrypted. Examples: "
-        "SMTP {host,port,username,password,use_tls,use_ssl}. "
-        "SendGrid {api_key}. Mailgun {api_key,domain,base_url}.",
-        label="Credentials (JSON)",
+        widget=forms.PasswordInput(render_value=False),
+        help_text="Leave empty to keep existing password/token.",
+        label="Password / API Token",
     )
 
     class Meta:
-        model = TenantEmailSettings
-        fields = ("tenant", "provider", "from_email", "from_name", "is_enabled", "credentials_json")
-
-    def clean_credentials_json(self):
-        raw = (self.cleaned_data.get("credentials_json") or "").strip()
-        if not raw:
-            return {}
-        try:
-            data = json.loads(raw)
-        except Exception as exc:
-            raise forms.ValidationError("Invalid JSON.") from exc
-        if not isinstance(data, dict):
-            raise forms.ValidationError("Credentials JSON must be an object.")
-        return data
+        model = GlobalEmailSettings
+        fields = ("provider", "host", "port", "username", "password", "from_email", "use_tls", "enabled")
 
 
 @admin.register(TenantEmailSettings)
 class TenantEmailSettingsAdmin(admin.ModelAdmin):
-    form = TenantEmailSettingsAdminForm
     list_display = ("tenant", "provider", "from_email", "is_enabled", "updated_at")
     list_filter = ("provider", "is_enabled")
     search_fields = ("tenant__slug", "tenant__name", "from_email")
@@ -58,21 +41,9 @@ class TenantEmailSettingsAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return bool(request.user and request.user.is_superuser)
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        if obj:
-            try:
-                creds = CredentialCrypto.decrypt_json(obj.credentials_encrypted)
-            except Exception:
-                creds = {}
-            form.base_fields["credentials_json"].initial = json.dumps(creds, indent=2, ensure_ascii=False)
-        return form
-
     def save_model(self, request, obj, form, change):
         if not request.user.is_superuser:
             raise PermissionDenied
-        creds = form.cleaned_data.get("credentials_json") or {}
-        obj.credentials_encrypted = CredentialCrypto.encrypt_json(creds) if creds else ""
         super().save_model(request, obj, form, change)
 
 
@@ -81,4 +52,53 @@ class EmailLogAdmin(admin.ModelAdmin):
     list_display = ("id", "tenant", "to_email", "template_key", "status", "provider", "created_at", "sent_at")
     list_filter = ("status", "provider", "template_key")
     search_fields = ("tenant__slug", "to_email", "subject", "idempotency_key", "provider_message_id")
+    ordering = ("-created_at",)
+
+
+@admin.register(GlobalEmailSettings)
+class GlobalEmailSettingsAdmin(admin.ModelAdmin):
+    form = GlobalEmailSettingsAdminForm
+    list_display = ("provider", "from_email", "enabled", "updated_at")
+    list_filter = ("provider", "enabled")
+    ordering = ("-updated_at",)
+
+    def has_module_permission(self, request):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_view_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_add_permission(self, request):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_change_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user and request.user.is_superuser)
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        return form
+
+    def save_model(self, request, obj, form, change):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        if not obj.pk and GlobalEmailSettings.objects.exists():
+            raise ValidationError("Only one GlobalEmailSettings row is allowed.")
+        raw_password = form.cleaned_data.get("password") or ""
+        if raw_password:
+            obj.password_encrypted = CredentialCrypto.encrypt_json({"password": raw_password})
+        super().save_model(request, obj, form, change)
+        GlobalEmailSettingsAuditLog.objects.create(
+            action="updated" if change else "created",
+            actor=getattr(request.user, "username", "admin"),
+            metadata={"provider": obj.provider},
+        )
+
+
+@admin.register(GlobalEmailSettingsAuditLog)
+class GlobalEmailSettingsAuditLogAdmin(admin.ModelAdmin):
+    list_display = ("id", "action", "actor", "created_at")
+    list_filter = ("action", "created_at")
     ordering = ("-created_at",)
