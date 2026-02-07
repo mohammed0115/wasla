@@ -33,49 +33,63 @@ class EmailConfig:
 class EmailConfigService:
     @staticmethod
     def get_active_config() -> EmailConfig:
-        qs = GlobalEmailSettings.objects.all().order_by("-updated_at")
-        if not qs.exists():
-            raise EmailConfigMissing("Global email settings are not configured.")
-        if qs.count() > 1:
+        qs = GlobalEmailSettings.objects.all().order_by("id")
+        count = qs.count()
+        if count == 0:
+            raise EmailConfigMissing("GlobalEmailSettings is missing.")
+        if count > 1:
             raise EmailConfigInvalid("Multiple GlobalEmailSettings rows found.")
-        settings_obj = qs.first()
-        if not settings_obj:
-            raise EmailConfigMissing("Global email settings are missing.")
-        if not settings_obj.enabled:
-            raise EmailConfigDisabled("Global email settings are disabled.")
+
+        row = qs.first()
+        if not row or not row.enabled:
+            raise EmailConfigDisabled("Email sending is disabled.")
+
         password = ""
-        if settings_obj.password_encrypted:
-            payload = CredentialCrypto.decrypt_json(settings_obj.password_encrypted)
-            password = (payload.get("password") or "").strip()
+        if row.password_encrypted:
+            try:
+                password = CredentialCrypto.decrypt_text(row.password_encrypted)
+            except Exception as exc:
+                raise EmailConfigInvalid("Unable to decrypt email credentials.") from exc
+
         config = EmailConfig(
-            provider=settings_obj.provider,
-            host=(settings_obj.host or "").strip(),
-            port=int(settings_obj.port),
-            username=(settings_obj.username or "").strip(),
+            provider=row.provider,
+            host=row.host or "",
+            port=int(row.port or 0),
+            username=row.username or "",
             password=password,
-            from_email=(settings_obj.from_email or "").strip(),
-            use_tls=bool(settings_obj.use_tls),
-            enabled=bool(settings_obj.enabled),
+            from_email=row.from_email or "",
+            use_tls=bool(row.use_tls),
+            enabled=bool(row.enabled),
         )
         EmailConfigService.validate_config(config)
         return config
 
     @staticmethod
     def validate_config(config: EmailConfig) -> None:
-        if not config.enabled:
-            raise EmailConfigDisabled("Global email settings are disabled.")
         if not config.from_email:
-            raise EmailConfigInvalid("From email is required.")
-        if config.provider == GlobalEmailSettings.PROVIDER_SMTP:
-            if not config.host or not config.port or not config.username or not config.password:
-                raise EmailConfigInvalid("SMTP configuration is incomplete.")
-        elif config.provider == GlobalEmailSettings.PROVIDER_SENDGRID:
+            raise EmailConfigInvalid("from_email is required.")
+
+        provider = config.provider
+        if provider == GlobalEmailSettings.PROVIDER_SMTP:
+            if not config.host:
+                raise EmailConfigInvalid("SMTP host is required.")
+            if not config.port:
+                raise EmailConfigInvalid("SMTP port is required.")
+            if not config.username:
+                raise EmailConfigInvalid("SMTP username is required.")
             if not config.password:
-                raise EmailConfigInvalid("SendGrid API key is missing.")
-        elif config.provider == GlobalEmailSettings.PROVIDER_MAILGUN:
-            if not config.username or not config.password:
-                raise EmailConfigInvalid("Mailgun domain or API key is missing.")
-        elif config.provider == GlobalEmailSettings.PROVIDER_SES:
-            raise EmailConfigInvalid("SES provider is not enabled in phase 1.")
+                raise EmailConfigInvalid("SMTP password is required.")
+        elif provider == GlobalEmailSettings.PROVIDER_SENDGRID:
+            if not config.password:
+                raise EmailConfigInvalid("SendGrid API key is required.")
+        elif provider == GlobalEmailSettings.PROVIDER_MAILGUN:
+            if not config.username:
+                raise EmailConfigInvalid("Mailgun domain is required.")
+            if not config.password:
+                raise EmailConfigInvalid("Mailgun API key is required.")
+        elif provider == GlobalEmailSettings.PROVIDER_SES:
+            raise EmailConfigInvalid("SES provider is optional and not enabled in phase 1.")
         else:
-            raise EmailConfigInvalid("Unknown email provider.")
+            raise EmailConfigInvalid(f"Unknown email provider: {provider!r}")
+
+        return

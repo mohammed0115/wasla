@@ -225,19 +225,6 @@ SMS_PROVIDERS = {
     },
 }
 
-# Email (SMTP/Console)
-EMAIL_PROVIDER = os.getenv("EMAIL_PROVIDER", "console").strip() or "console"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com").strip()
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587") or "587")
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "").strip()
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "").strip()
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1").strip().lower() in ("1", "true", "yes")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@example.com").strip()
-
-EMAIL_OTP_TTL_MINUTES = int(os.getenv("EMAIL_OTP_TTL_MINUTES", "10") or "10")
-EMAIL_OTP_SUBJECT = os.getenv("EMAIL_OTP_SUBJECT", "رمز التحقق")
-EMAIL_OTP_BODY = os.getenv("EMAIL_OTP_BODY", "رمز التحقق الخاص بك هو: {code}")
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 

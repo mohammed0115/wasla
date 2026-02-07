@@ -7,12 +7,24 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.accounts.models import AccountProfile
+from apps.emails.application.services.crypto import CredentialCrypto
+from apps.emails.models import GlobalEmailSettings
 
 
 class AccountsAuthApiTests(TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.client = APIClient()
+        GlobalEmailSettings.objects.create(
+            provider=GlobalEmailSettings.PROVIDER_SMTP,
+            host="smtp.example.com",
+            port=587,
+            username="user@example.com",
+            password_encrypted=CredentialCrypto.encrypt_text("secret"),
+            from_email="no-reply@example.com",
+            use_tls=True,
+            enabled=True,
+        )
 
     def test_register_api_contract_and_tokens(self):
         response = self.client.post(

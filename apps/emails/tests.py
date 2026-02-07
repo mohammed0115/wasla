@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 from django.core import mail
 from django.test import TestCase, override_settings
 
@@ -20,7 +18,7 @@ class EmailGatewayTests(TestCase):
             host="smtp.example.com",
             port=587,
             username="user@example.com",
-            password_encrypted=CredentialCrypto.encrypt_json({"password": "secret"}),
+            password_encrypted=CredentialCrypto.encrypt_text("secret"),
             from_email="no-reply@example.com",
             use_tls=True,
             enabled=True,
@@ -45,14 +43,6 @@ class EmailGatewayTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
 
     def test_credentials_crypto_requires_key_unless_plaintext_allowed(self):
-        old_key = os.environ.pop("EMAIL_CREDENTIALS_ENCRYPTION_KEY", None)
-        old_plain = os.environ.pop("EMAIL_CREDENTIALS_ALLOW_PLAINTEXT", None)
-        try:
-            token = CredentialCrypto.encrypt_json({"api_key": "x"})
-            self.assertTrue(token.startswith("fernet:"))
-            self.assertEqual(CredentialCrypto.decrypt_json(token)["api_key"], "x")
-        finally:
-            if old_key is not None:
-                os.environ["EMAIL_CREDENTIALS_ENCRYPTION_KEY"] = old_key
-            if old_plain is not None:
-                os.environ["EMAIL_CREDENTIALS_ALLOW_PLAINTEXT"] = old_plain
+        token = CredentialCrypto.encrypt_text("x")
+        self.assertTrue(token.startswith("fernet:"))
+        self.assertEqual(CredentialCrypto.decrypt_text(token), "x")

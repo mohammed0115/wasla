@@ -8,4 +8,4 @@ class EmailsConfig(AppConfig):
 
     def ready(self):
         from . import interfaces  # noqa: F401
-
+        from . import checks  # noqa: F401

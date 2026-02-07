@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from django.conf import settings
-
 from apps.notifications.domain.errors import EmailGatewayError
 from apps.notifications.domain.ports import EmailGateway
-from apps.notifications.infrastructure.gateways.console import ConsoleEmailGateway
 from apps.notifications.infrastructure.gateways.smtp import SmtpEmailGateway
+from apps.emails.application.services.email_config_service import (
+    EmailConfigDisabled,
+    EmailConfigInvalid,
+    EmailConfigMissing,
+    EmailConfigService,
+)
 
 
 @dataclass(frozen=True)
@@ -20,25 +23,28 @@ class ResolvedEmailProvider:
 class EmailGatewayRouter:
     @staticmethod
     def resolve() -> ResolvedEmailProvider:
-        provider_name = getattr(settings, "EMAIL_PROVIDER", "console")
-        default_from = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
+        try:
+            config = EmailConfigService.get_active_config()
+        except (EmailConfigMissing, EmailConfigDisabled, EmailConfigInvalid) as exc:
+            raise EmailGatewayError(str(exc)) from exc
 
-        if provider_name == "console":
-            return ResolvedEmailProvider(gateway=ConsoleEmailGateway(), provider_name="console", default_from_email=default_from)
+        provider_name = config.provider
+        default_from = config.from_email
 
         if provider_name == "smtp":
-            host = getattr(settings, "EMAIL_HOST", "")
-            port = getattr(settings, "EMAIL_PORT", 587)
-            user = getattr(settings, "EMAIL_HOST_USER", "")
-            password = getattr(settings, "EMAIL_HOST_PASSWORD", "")
-            use_tls = getattr(settings, "EMAIL_USE_TLS", True)
-            if not host:
-                raise EmailGatewayError("EMAIL_HOST is not configured.")
             return ResolvedEmailProvider(
-                gateway=SmtpEmailGateway(host=host, port=port, username=user, password=password, use_tls=use_tls),
+                gateway=SmtpEmailGateway(
+                    host=config.host,
+                    port=config.port,
+                    username=config.username,
+                    password=config.password,
+                    use_tls=config.use_tls,
+                ),
                 provider_name="smtp",
                 default_from_email=default_from,
             )
 
-        raise EmailGatewayError(f"Unknown email provider: {provider_name}")
+        if provider_name in ("sendgrid", "mailgun", "ses"):
+            raise EmailGatewayError(f"Provider '{provider_name}' is not supported by notifications module.")
 
+        raise EmailGatewayError(f"Unknown email provider: {provider_name}")

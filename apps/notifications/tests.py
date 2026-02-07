@@ -1,35 +1,55 @@
 from __future__ import annotations
 
-from django.test import TestCase, override_settings
+from unittest import mock
+
+from django.test import TestCase
 
 from apps.notifications.application.use_cases.request_email_otp import RequestEmailOtpCommand, RequestEmailOtpUseCase
 from apps.notifications.application.use_cases.send_email import SendEmailCommand, SendEmailUseCase
 from apps.notifications.application.use_cases.verify_email_otp import VerifyEmailOtpCommand, VerifyEmailOtpUseCase
 from apps.notifications.models import EmailOtp
+from apps.emails.application.services.crypto import CredentialCrypto
+from apps.emails.models import GlobalEmailSettings
 
 
 class EmailModuleTests(TestCase):
-    @override_settings(EMAIL_PROVIDER="console", DEFAULT_FROM_EMAIL="no-reply@example.com")
     def test_send_email_console(self):
-        SendEmailUseCase.execute(
-            SendEmailCommand(
-                subject="Test",
-                body="Hello",
-                to_email="user@example.com",
-            )
+        GlobalEmailSettings.objects.create(
+            provider=GlobalEmailSettings.PROVIDER_SMTP,
+            host="smtp.example.com",
+            port=587,
+            username="user@example.com",
+            password_encrypted=CredentialCrypto.encrypt_text("secret"),
+            from_email="no-reply@example.com",
+            use_tls=True,
+            enabled=True,
         )
 
-    @override_settings(
-        EMAIL_PROVIDER="console",
-        DEFAULT_FROM_EMAIL="no-reply@example.com",
-        EMAIL_OTP_TTL_MINUTES=5,
-        EMAIL_OTP_SUBJECT="OTP",
-        EMAIL_OTP_BODY="Your code is {code}",
-    )
+        with mock.patch("smtplib.SMTP") as smtp_mock:
+            SendEmailUseCase.execute(
+                SendEmailCommand(
+                    subject="Test",
+                    body="Hello",
+                    to_email="user@example.com",
+                )
+            )
+            self.assertTrue(smtp_mock.called)
+
     def test_request_and_verify_otp(self):
-        result = RequestEmailOtpUseCase.execute(
-            RequestEmailOtpCommand(email="user@example.com", purpose=EmailOtp.PURPOSE_REGISTER)
+        GlobalEmailSettings.objects.create(
+            provider=GlobalEmailSettings.PROVIDER_SMTP,
+            host="smtp.example.com",
+            port=587,
+            username="user@example.com",
+            password_encrypted=CredentialCrypto.encrypt_text("secret"),
+            from_email="no-reply@example.com",
+            use_tls=True,
+            enabled=True,
         )
+        with mock.patch("smtplib.SMTP"):
+            result = RequestEmailOtpUseCase.execute(
+                RequestEmailOtpCommand(email="user@example.com", purpose=EmailOtp.PURPOSE_REGISTER)
+            )
         self.assertIsNotNone(result.otp_id)
 
         otp = EmailOtp.objects.get(id=result.otp_id)
@@ -41,8 +61,17 @@ class EmailModuleTests(TestCase):
         )
         self.assertFalse(bad.success)
 
-    @override_settings(EMAIL_PROVIDER="console", DEFAULT_FROM_EMAIL="no-reply@example.com")
     def test_verify_otp_success(self):
+        GlobalEmailSettings.objects.create(
+            provider=GlobalEmailSettings.PROVIDER_SMTP,
+            host="smtp.example.com",
+            port=587,
+            username="user@example.com",
+            password_encrypted=CredentialCrypto.encrypt_text("secret"),
+            from_email="no-reply@example.com",
+            use_tls=True,
+            enabled=True,
+        )
         otp, code = EmailOtp.create_otp(email="user2@example.com", purpose=EmailOtp.PURPOSE_LOGIN, ttl_minutes=5)
         ok = VerifyEmailOtpUseCase.execute(
             VerifyEmailOtpCommand(email="user2@example.com", purpose=EmailOtp.PURPOSE_LOGIN, code=code)
