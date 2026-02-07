@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "apps.accounts.apps.AccountsConfig",
     "apps.sms.apps.SmsConfig",
+    "apps.notifications.apps.NotificationsConfig",
     "apps.tenants.apps.TenantsConfig",
     "apps.catalog.apps.CatalogConfig",
     "apps.customers.apps.CustomerConfig",
@@ -77,6 +78,8 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "apps.tenants.middleware.TenantMiddleware",
+    "apps.tenants.middleware.TenantLocaleMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -95,6 +98,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -138,13 +142,22 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = os.getenv("DJANGO_LANGUAGE_CODE", "ar").strip() or "ar"
+
+LANGUAGES = [
+    ("ar", "Arabic"),
+    ("en", "English"),
+]
 
 TIME_ZONE = "UTC"
 
 USE_I18N = True
 
 USE_TZ = True
+
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
 
 
 # Static files (CSS, JavaScript, Images)
@@ -223,6 +236,19 @@ SMS_PROVIDERS = {
         "include_bearer_as_query_param": (os.getenv("SMS_TAQNYAT_INCLUDE_QUERY_TOKEN", "0").strip().lower() in ("1", "true", "yes")),
     },
 }
+
+# Email (SMTP/Console)
+EMAIL_PROVIDER = os.getenv("EMAIL_PROVIDER", "console").strip() or "console"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com").strip()
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587") or "587")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "").strip()
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "").strip()
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1").strip().lower() in ("1", "true", "yes")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@example.com").strip()
+
+EMAIL_OTP_TTL_MINUTES = int(os.getenv("EMAIL_OTP_TTL_MINUTES", "10") or "10")
+EMAIL_OTP_SUBJECT = os.getenv("EMAIL_OTP_SUBJECT", "رمز التحقق")
+EMAIL_OTP_BODY = os.getenv("EMAIL_OTP_BODY", "رمز التحقق الخاص بك هو: {code}")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

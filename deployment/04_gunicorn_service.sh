@@ -106,6 +106,7 @@ fi
 set +a
 
 cd "${BACKEND_PATH}"
+"${VENV_PATH}/bin/python" manage.py compilemessages || true
 "${VENV_PATH}/bin/python" manage.py migrate --noinput
 "${VENV_PATH}/bin/python" manage.py collectstatic --noinput
 

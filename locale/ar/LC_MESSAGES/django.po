@@ -1,0 +1,24 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ar\n"
+
+msgid "Store"
+msgstr "المتجر"
+
+msgid "Login"
+msgstr "تسجيل الدخول"
+
+msgid "Logout"
+msgstr "تسجيل الخروج"
+
+msgid "Sign up"
+msgstr "إنشاء حساب"
+
+msgid "Admin"
+msgstr "الإدارة"
+
+msgid "Dashboard"
+msgstr "لوحة التحكم"
+

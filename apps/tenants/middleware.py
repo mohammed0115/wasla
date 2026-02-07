@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db.utils import OperationalError, ProgrammingError
+from django.utils import translation
 
 from .models import Tenant
 
@@ -85,3 +86,25 @@ class TenantMiddleware:
             return None
 
         return None
+
+
+class TenantLocaleMiddleware:
+    """
+    Set a tenant default language if user hasn't selected one.
+    Must run before Django's LocaleMiddleware.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        tenant = getattr(request, "tenant", None)
+        if tenant and hasattr(tenant, "language"):
+            lang = (tenant.language or "").strip()
+            if lang:
+                cookie_name = getattr(settings, "LANGUAGE_COOKIE_NAME", "django_language")
+                has_cookie = bool(request.COOKIES.get(cookie_name))
+                if not has_cookie:
+                    translation.activate(lang)
+                    request.LANGUAGE_CODE = lang
+        return self.get_response(request)

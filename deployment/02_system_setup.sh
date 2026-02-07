@@ -29,6 +29,7 @@ apt-get update -y
 apt-get install -y --no-install-recommends \
   ca-certificates \
   curl \
+  gettext \
   git \
   openssl \
   build-essential \
