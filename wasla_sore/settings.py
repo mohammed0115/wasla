@@ -47,6 +47,10 @@ CSRF_TRUSTED_ORIGINS = [
     for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://w-sala.com",
+    "https://www.w-sala.com",
+]
 
 
 # Application definition
@@ -237,6 +241,8 @@ OTP_PROVIDER_REGISTRY = {
     "email": "apps.accounts.infrastructure.otp_providers.email.EmailOtpProvider",
     "sms": "apps.accounts.infrastructure.otp_providers.sms.SmsOtpProvider",
 }
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
