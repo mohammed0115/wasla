@@ -6,8 +6,9 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.accounts.application.services.identity_service import AccountIdentityService
+from apps.accounts.domain.hybrid_policies import is_testing_otp_allowed, test_otp_code
 from apps.accounts.domain.otp_policies import OTP_MAX_ATTEMPTS, normalize_code, verify_otp
-from apps.accounts.models import AccountEmailOtp, AccountProfile
+from apps.accounts.models import AccountEmailOtp, AccountProfile, OTPChallenge, OTPLog
 
 
 @dataclass(frozen=True)
@@ -28,10 +29,19 @@ class VerifyLoginOtpUseCase:
     def execute(cmd: VerifyLoginOtpCommand) -> VerifyLoginOtpResult:
         user = AccountIdentityService.resolve_user_by_identifier(identifier=cmd.identifier)
         code = normalize_code(cmd.code)
-        if len(code) != 6:
-            raise ValueError("Invalid code.")
 
         now = timezone.now()
+        if is_testing_otp_allowed() and code == test_otp_code():
+            OTPLog.objects.create(
+                identifier=(cmd.identifier or "").strip() or (getattr(user, "email", "") or "").strip(),
+                channel=OTPChallenge.CHANNEL_EMAIL,
+                code_type=OTPLog.CODE_TYPE_TEST,
+                verified_at=now,
+            )
+            return VerifyLoginOtpResult(user=user, verified=True)
+
+        if len(code) != 6:
+            raise ValueError("Invalid code.")
         otp = (
             AccountEmailOtp.objects.select_for_update()
             .filter(user=user, purpose=AccountEmailOtp.PURPOSE_LOGIN, consumed_at__isnull=True)
@@ -55,5 +65,11 @@ class VerifyLoginOtpUseCase:
         otp.save(update_fields=["consumed_at"])
 
         AccountProfile.objects.filter(user=user, email_verified_at__isnull=True).update(email_verified_at=now)
+        OTPLog.objects.create(
+            identifier=(cmd.identifier or "").strip() or (getattr(user, "email", "") or "").strip(),
+            channel=OTPChallenge.CHANNEL_EMAIL,
+            code_type=OTPLog.CODE_TYPE_REAL,
+            verified_at=now,
+        )
 
         return VerifyLoginOtpResult(user=user, verified=True)

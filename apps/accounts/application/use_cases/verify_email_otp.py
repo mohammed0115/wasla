@@ -6,8 +6,9 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.db import transaction
 from django.utils import timezone
 
+from apps.accounts.domain.hybrid_policies import is_testing_otp_allowed, test_otp_code
 from apps.accounts.domain.otp_policies import OTP_MAX_ATTEMPTS, normalize_code, verify_otp
-from apps.accounts.models import AccountEmailOtp, AccountProfile
+from apps.accounts.models import AccountEmailOtp, AccountProfile, OTPChallenge, OTPLog
 
 
 @dataclass(frozen=True)
@@ -29,10 +30,21 @@ class VerifyEmailOtpUseCase:
         if not getattr(cmd.user, "is_authenticated", False):
             raise ValueError("Authentication required.")
         code = normalize_code(cmd.code)
-        if len(code) != 6:
-            raise ValueError("Invalid code.")
 
         now = timezone.now()
+        if is_testing_otp_allowed() and code == test_otp_code():
+            if cmd.purpose == AccountEmailOtp.PURPOSE_EMAIL_VERIFY:
+                AccountProfile.objects.filter(user=cmd.user, email_verified_at__isnull=True).update(email_verified_at=now)
+            OTPLog.objects.create(
+                identifier=(getattr(cmd.user, "email", "") or "").strip(),
+                channel=OTPChallenge.CHANNEL_EMAIL,
+                code_type=OTPLog.CODE_TYPE_TEST,
+                verified_at=now,
+            )
+            return VerifyEmailOtpResult(verified=True)
+
+        if len(code) != 6:
+            raise ValueError("Invalid code.")
         otp = (
             AccountEmailOtp.objects.select_for_update()
             .filter(user=cmd.user, purpose=cmd.purpose, consumed_at__isnull=True)
@@ -57,6 +69,11 @@ class VerifyEmailOtpUseCase:
 
         if cmd.purpose == AccountEmailOtp.PURPOSE_EMAIL_VERIFY:
             AccountProfile.objects.filter(user=cmd.user, email_verified_at__isnull=True).update(email_verified_at=now)
+        OTPLog.objects.create(
+            identifier=(getattr(cmd.user, "email", "") or "").strip(),
+            channel=OTPChallenge.CHANNEL_EMAIL,
+            code_type=OTPLog.CODE_TYPE_REAL,
+            verified_at=now,
+        )
 
         return VerifyEmailOtpResult(verified=True)
-

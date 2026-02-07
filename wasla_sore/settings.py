@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "1").strip().lower() in ("1", "true", "yes")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower() or "development"
 TEST_OTP_CODE = os.getenv("TEST_OTP_CODE", "12345").strip() or "12345"
 

@@ -288,3 +288,27 @@ class AccountsTestOtpPolicyTests(TestCase):
                 VerifyOtpCommand(identifier="prod-user@example.com", code="12345", channel="email")
             )
         self.assertFalse(OTPLog.objects.filter(identifier="prod-user@example.com").exists())
+
+    @override_settings(DEBUG=True, ENVIRONMENT="staging", TEST_OTP_CODE="12345")
+    def test_test_otp_accepts_email_verify(self):
+        from apps.accounts.application.use_cases.verify_email_otp import VerifyEmailOtpCommand, VerifyEmailOtpUseCase
+
+        User = get_user_model()
+        user = User.objects.create_user(username="0500000099", email="verify@example.com", password="StrongPass12345!")
+        AccountProfile.objects.create(user=user, full_name="Verify User", phone="0500000099")
+
+        result = VerifyEmailOtpUseCase.execute(VerifyEmailOtpCommand(user=user, code="12345"))
+        self.assertTrue(result.verified)
+        self.assertTrue(OTPLog.objects.filter(identifier="verify@example.com", code_type=OTPLog.CODE_TYPE_TEST).exists())
+
+    @override_settings(DEBUG=False, ENVIRONMENT="prod", TEST_OTP_CODE="12345")
+    def test_test_otp_rejected_for_email_verify_in_prod(self):
+        from apps.accounts.application.use_cases.verify_email_otp import VerifyEmailOtpCommand, VerifyEmailOtpUseCase
+
+        User = get_user_model()
+        user = User.objects.create_user(username="0500000100", email="verifyprod@example.com", password="StrongPass12345!")
+        AccountProfile.objects.create(user=user, full_name="Verify Prod", phone="0500000100")
+
+        with self.assertRaises(ValueError):
+            VerifyEmailOtpUseCase.execute(VerifyEmailOtpCommand(user=user, code="12345"))
+        self.assertFalse(OTPLog.objects.filter(identifier="verifyprod@example.com").exists())
