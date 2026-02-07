@@ -49,7 +49,32 @@ class TenantEmailProviderResolver:
         renderer: TemplateRendererPort = DjangoTemplateRendererAdapter()
 
         if provider == TenantEmailSettings.PROVIDER_SMTP:
-            gateway = SmtpEmailGateway(from_email=from_email, from_name=from_name)
+            smtp_host = (creds.get("host") or "").strip() or None
+            smtp_port = creds.get("port")
+            try:
+                smtp_port = int(smtp_port) if smtp_port is not None and str(smtp_port).strip() else None
+            except Exception:
+                smtp_port = None
+            smtp_username = (creds.get("username") or "").strip() or None
+            smtp_password = (creds.get("password") or "").strip() or None
+            smtp_use_tls = creds.get("use_tls")
+            smtp_use_ssl = creds.get("use_ssl")
+            smtp_timeout = creds.get("timeout")
+            try:
+                smtp_timeout = int(smtp_timeout) if smtp_timeout is not None and str(smtp_timeout).strip() else None
+            except Exception:
+                smtp_timeout = None
+            gateway = SmtpEmailGateway(
+                from_email=from_email,
+                from_name=from_name,
+                host=smtp_host,
+                port=smtp_port,
+                username=smtp_username,
+                password=smtp_password,
+                use_tls=bool(smtp_use_tls) if smtp_use_tls is not None else None,
+                use_ssl=bool(smtp_use_ssl) if smtp_use_ssl is not None else None,
+                timeout=smtp_timeout,
+            )
         elif provider == TenantEmailSettings.PROVIDER_SENDGRID:
             api_key = (creds.get("api_key") or "").strip()
             if not api_key:
@@ -74,4 +99,3 @@ class TenantEmailProviderResolver:
             gateway=gateway,
             renderer=renderer,
         )
-

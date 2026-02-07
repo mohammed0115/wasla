@@ -44,11 +44,8 @@ class EmailGatewayTests(TestCase):
         old_key = os.environ.pop("EMAIL_CREDENTIALS_ENCRYPTION_KEY", None)
         old_plain = os.environ.pop("EMAIL_CREDENTIALS_ALLOW_PLAINTEXT", None)
         try:
-            with self.assertRaises(RuntimeError):
-                CredentialCrypto.encrypt_json({"api_key": "x"})
-            os.environ["EMAIL_CREDENTIALS_ALLOW_PLAINTEXT"] = "1"
             token = CredentialCrypto.encrypt_json({"api_key": "x"})
-            self.assertTrue(token.startswith("plain:"))
+            self.assertTrue(token.startswith("fernet:"))
             self.assertEqual(CredentialCrypto.decrypt_json(token)["api_key"], "x")
         finally:
             if old_key is not None:

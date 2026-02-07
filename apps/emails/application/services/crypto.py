@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 from typing import Any
+
+from django.conf import settings
 
 
 class CredentialCrypto:
@@ -16,11 +19,7 @@ class CredentialCrypto:
     @staticmethod
     def encrypt_json(data: dict[str, Any]) -> str:
         raw = json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-        key = os.getenv("EMAIL_CREDENTIALS_ENCRYPTION_KEY", "").strip()
-        if not key:
-            if os.getenv("EMAIL_CREDENTIALS_ALLOW_PLAINTEXT", "").strip().lower() in ("1", "true", "yes"):
-                return "plain:" + base64.b64encode(raw).decode("ascii")
-            raise RuntimeError("EMAIL_CREDENTIALS_ENCRYPTION_KEY is not set (refusing to store credentials).")
+        key = os.getenv("EMAIL_CREDENTIALS_ENCRYPTION_KEY", "").strip() or CredentialCrypto._derived_fernet_key()
 
         try:
             from cryptography.fernet import Fernet
@@ -37,16 +36,10 @@ class CredentialCrypto:
         if not token:
             return {}
 
-        if token.startswith("plain:"):
-            raw = base64.b64decode(token.removeprefix("plain:").encode("ascii"))
-            return json.loads(raw.decode("utf-8"))
-
         if not token.startswith("fernet:"):
             raise RuntimeError("Unknown credentials encryption format.")
 
-        key = os.getenv("EMAIL_CREDENTIALS_ENCRYPTION_KEY", "").strip()
-        if not key:
-            raise RuntimeError("EMAIL_CREDENTIALS_ENCRYPTION_KEY is not set (cannot decrypt credentials).")
+        key = os.getenv("EMAIL_CREDENTIALS_ENCRYPTION_KEY", "").strip() or CredentialCrypto._derived_fernet_key()
 
         try:
             from cryptography.fernet import Fernet
@@ -57,3 +50,14 @@ class CredentialCrypto:
         raw = f.decrypt(token.removeprefix("fernet:").encode("ascii"))
         return json.loads(raw.decode("utf-8"))
 
+    @staticmethod
+    def _derived_fernet_key() -> str:
+        """
+        Derive a stable Fernet key from Django SECRET_KEY.
+        This keeps provider credentials out of env files while still encrypting at rest.
+        """
+        secret = (getattr(settings, "SECRET_KEY", "") or "").encode("utf-8")
+        if not secret:
+            raise RuntimeError("SECRET_KEY is missing; cannot derive credentials encryption key.")
+        digest = hashlib.sha256(secret + b"|emails.credentials.v1").digest()
+        return base64.urlsafe_b64encode(digest).decode("ascii")
