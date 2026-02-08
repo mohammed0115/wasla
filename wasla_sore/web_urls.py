@@ -1,3 +1,10 @@
+"""
+Web URL routes (Django templates).
+
+AR: مسارات واجهة الويب (الصفحة الرئيسية + dashboard + إعداد المتجر).
+EN: Web UI routes (landing + dashboard + store setup).
+"""
+
 from django.urls import path
 
 from . import web_views

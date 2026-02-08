@@ -1,3 +1,10 @@
+"""
+API URL aggregation.
+
+AR: يجمع مسارات API من الموديولات المختلفة تحت `/api/`.
+EN: Aggregates app API routes under `/api/`.
+"""
+
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 

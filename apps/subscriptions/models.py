@@ -1,7 +1,21 @@
+"""
+Subscriptions models (MVP).
+
+AR:
+- تعريف خطط الاشتراك (Features + limits).
+- ربط متجر بخطة عبر StoreSubscription.
+
+EN:
+- Defines subscription plans (features + limits).
+- Links a store to a plan via StoreSubscription.
+"""
+
 from django.db import models
 
 
 class SubscriptionPlan(models.Model):
+    """A subscription plan with optional usage limits."""
+
     BILLING_CYCLE_CHOICES = [
         ("monthly", "Monthly"),
         ("yearly", "Yearly"),
@@ -35,6 +49,8 @@ class SubscriptionPlan(models.Model):
 
 
 class StoreSubscription(models.Model):
+    """Subscription instance for a store."""
+
     STATUS_CHOICES = [
         ("active", "Active"),
         ("expired", "Expired"),

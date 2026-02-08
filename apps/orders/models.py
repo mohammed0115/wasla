@@ -1,7 +1,21 @@
+"""
+Orders models (MVP).
+
+AR:
+- الطلب يمثل عملية شراء داخل متجر (`store_id`).
+- OrderItem يمثل بنود الطلب المرتبطة بمنتجات الكتالوج.
+
+EN:
+- Order represents a purchase within a store (`store_id`).
+- OrderItem represents line items linked to catalog products.
+"""
+
 from django.db import models
 
 
 class Order(models.Model):
+    """Store-scoped order with a simple status lifecycle."""
+
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("paid", "Paid"),
@@ -32,6 +46,8 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    """Line item belonging to an order."""
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()

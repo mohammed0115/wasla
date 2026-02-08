@@ -1,9 +1,19 @@
+"""
+Reviews models (MVP).
+
+AR: تقييمات المنتجات مع حالات مراجعة (pending/approved/rejected).
+EN: Product reviews with moderation statuses (pending/approved/rejected).
+"""
 
 from django.db import models
+
 from apps.catalog.models import Product
 from apps.customers.models import Customer
 
+
 class Review(models.Model):
+    """A rating/comment left by a customer for a product."""
+
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("approved", "Approved"),

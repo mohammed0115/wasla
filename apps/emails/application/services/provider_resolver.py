@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+"""
+Email provider resolution.
+
+AR:
+- يحدد مزود البريد الفعّال (SMTP/SendGrid/Mailgun) بناءً على الإعدادات الحالية.
+- يبني Gateway Adapter مناسب ويُرجعه لباقي الـ use cases.
+
+EN:
+- Resolves the active email provider (SMTP/SendGrid/Mailgun) from configuration.
+- Builds the correct gateway adapter for use cases.
+"""
+
 from dataclasses import dataclass
 
 from apps.emails.application.services.email_config_service import (
@@ -16,11 +28,15 @@ from apps.emails.infrastructure.renderers.django_renderer import DjangoTemplateR
 
 
 class EmailProviderNotConfigured(Exception):
+    """Raised when no valid email provider configuration exists."""
+
     pass
 
 
 @dataclass(frozen=True)
 class ResolvedEmailBackend:
+    """Resolved backend used by the application layer to send emails."""
+
     provider: str
     from_email: str
     from_name: str
@@ -29,6 +45,8 @@ class ResolvedEmailBackend:
 
 
 class TenantEmailProviderResolver:
+    """Resolves and builds the active email backend for a tenant."""
+
     @staticmethod
     def resolve(*, tenant_id: int) -> ResolvedEmailBackend:
         try:
@@ -43,6 +61,7 @@ class TenantEmailProviderResolver:
         renderer: TemplateRendererPort = DjangoTemplateRendererAdapter()
 
         if provider == "smtp":
+            use_ssl = (not config.use_tls) and int(config.port or 0) == 465
             gateway = SmtpEmailGateway(
                 from_email=from_email,
                 from_name=from_name,
@@ -51,7 +70,7 @@ class TenantEmailProviderResolver:
                 username=config.username or None,
                 password=config.password or None,
                 use_tls=bool(config.use_tls),
-                use_ssl=None,
+                use_ssl=use_ssl,
                 timeout=None,
             )
         elif provider == "sendgrid":

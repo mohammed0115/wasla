@@ -1,7 +1,16 @@
+"""
+Payments models (MVP).
+
+AR: يمثل عمليات الدفع المرتبطة بالطلبات (نجاح/فشل/قيد الانتظار).
+EN: Represents payment attempts linked to orders (success/failed/pending).
+"""
+
 from django.db import models
 
 
 class Payment(models.Model):
+    """Payment record linked to an order."""
+
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("success", "Success"),

@@ -227,10 +227,10 @@ class AccountsAuthApiTests(TestCase):
         country_payload = country.json()
         self.assertTrue(country_payload["success"])
         self.assertEqual(country_payload["data"]["country"], "SA")
-        self.assertEqual(country_payload["next_step"], reverse("onboarding:business_types"))
+        self.assertEqual(country_payload["next_step"], reverse("onboarding:business"))
 
         business = self.client.post(
-            "/api/onboarding/business-types/",
+            "/api/onboarding/business/",
             data={"business_types": ["fashion", "electronics"]},
             format="json",
         )
@@ -238,7 +238,7 @@ class AccountsAuthApiTests(TestCase):
         business_payload = business.json()
         self.assertTrue(business_payload["success"])
         self.assertEqual(business_payload["data"]["business_types"], ["fashion", "electronics"])
-        self.assertEqual(business_payload["next_step"], reverse("onboarding:store"))
+        self.assertEqual(business_payload["next_step"], reverse("web:dashboard_setup_store"))
 
         profile = AccountProfile.objects.get(user=user)
         self.assertEqual(profile.country, "SA")

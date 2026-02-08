@@ -1,7 +1,21 @@
+"""
+Wallet models (MVP).
+
+AR:
+- محفظة لكل متجر + معاملات credit/debit.
+- هذا النموذج مبسّط وقد يحتاج لاحقًا لتطبيق Ledger كامل (Available/Pending…).
+
+EN:
+- A wallet per store with credit/debit transactions.
+- This is a simplified model; it can be extended to a full ledger later.
+"""
 
 from django.db import models
 
+
 class Wallet(models.Model):
+    """Wallet per store."""
+
     store_id = models.IntegerField()
     balance = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     currency = models.CharField(max_length=10, default="USD")
@@ -10,7 +24,10 @@ class Wallet(models.Model):
     def __str__(self) -> str:
         return f"Store {self.store_id} ({self.currency})"
 
+
 class WalletTransaction(models.Model):
+    """Wallet ledger entry (credit/debit)."""
+
     TRANSACTION_TYPES = [
         ("credit", "Credit"),
         ("debit", "Debit"),

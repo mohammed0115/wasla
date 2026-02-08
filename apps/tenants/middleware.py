@@ -1,5 +1,19 @@
 from __future__ import annotations
 
+"""
+Tenant (Store) resolution middleware.
+
+AR:
+- يحدد المتجر الحالي ويضعه في `request.tenant`.
+- يدعم تحديد المتجر عبر Headers أو Session أو Domain/Subdomain.
+- في وضع DEBUG فقط يسمح بـ `?store_id=` لتسهيل التطوير.
+
+EN:
+- Resolves the current store (tenant) and attaches it to `request.tenant`.
+- Supports resolution via headers, session, and domain/subdomain.
+- In DEBUG only, supports `?store_id=` to ease local development.
+"""
+
 from django.conf import settings
 from django.db.utils import OperationalError, ProgrammingError
 from django.utils import translation
@@ -8,6 +22,8 @@ from .models import Tenant
 
 
 class TenantMiddleware:
+    """Attach the resolved tenant to the request as `request.tenant`."""
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -16,6 +32,15 @@ class TenantMiddleware:
         return self.get_response(request)
 
     def _resolve_tenant(self, request):
+        """
+        Resolve tenant using a predictable priority order.
+
+        Order:
+        1) `X-Tenant` / `X-Tenant-Id` headers (id or slug/domain)
+        2) DEBUG querystring (`store_id` / `tenant_id`) -> stored in session
+        3) session `store_id`
+        4) domain / subdomain
+        """
         tenant = None
 
         raw_header = (

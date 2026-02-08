@@ -1,7 +1,21 @@
+"""
+Catalog models (MVP).
+
+AR:
+- هذا الملف يحتوي موديلات الكتالوج: التصنيفات، المنتجات، والمخزون.
+- عزل المتاجر يتم عبر `store_id` (Tenant column).
+
+EN:
+- Contains catalog models: categories, products, and inventory.
+- Tenant isolation is implemented via `store_id`.
+"""
+
 from django.db import models
 
 
 class Category(models.Model):
+    """Store-scoped product category."""
+
     store_id = models.IntegerField(default=1, db_index=True)
     name = models.CharField(max_length=255)
     parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL)
@@ -11,10 +25,14 @@ class Category(models.Model):
 
 
 def product_image_upload_to(instance, filename: str) -> str:
+    """Upload path for product images (scoped by store)."""
+
     return f"store_{instance.store_id}/products/{filename}"
 
 
 class Product(models.Model):
+    """Sellable product within a store (unique SKU per store)."""
+
     store_id = models.IntegerField(default=1, db_index=True)
     sku = models.CharField(max_length=64)
     name = models.CharField(max_length=255)
@@ -33,6 +51,8 @@ class Product(models.Model):
 
 
 class Inventory(models.Model):
+    """Basic inventory record for a product."""
+
     product = models.OneToOneField(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     in_stock = models.BooleanField(default=True)

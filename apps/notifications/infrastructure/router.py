@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+"""
+Email gateway router for notifications module.
+
+AR:
+- يقرأ إعدادات البريد (global) عبر EmailConfigService (من موديول `apps/emails`).
+- يجهز gateway مناسب للإرسال (SMTP فقط في هذا الموديول حالياً).
+
+EN:
+- Loads global email config via EmailConfigService (from `apps/emails`).
+- Builds the appropriate gateway for sending (SMTP only for now).
+"""
+
 from dataclasses import dataclass
 
 from apps.notifications.domain.errors import EmailGatewayError
@@ -21,6 +33,8 @@ class ResolvedEmailProvider:
 
 
 class EmailGatewayRouter:
+    """Resolve an EmailGateway based on current email configuration."""
+
     @staticmethod
     def resolve() -> ResolvedEmailProvider:
         try:
@@ -32,6 +46,7 @@ class EmailGatewayRouter:
         default_from = config.from_email
 
         if provider_name == "smtp":
+            use_ssl = (not config.use_tls) and int(config.port or 0) == 465
             return ResolvedEmailProvider(
                 gateway=SmtpEmailGateway(
                     host=config.host,
@@ -39,6 +54,7 @@ class EmailGatewayRouter:
                     username=config.username,
                     password=config.password,
                     use_tls=config.use_tls,
+                    use_ssl=use_ssl,
                 ),
                 provider_name="smtp",
                 default_from_email=default_from,

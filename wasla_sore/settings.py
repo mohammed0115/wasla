@@ -10,12 +10,23 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from datetime import timedelta
 import os
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _env_bool(name: str, default: str = "0") -> bool:
+    return os.getenv(name, default).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _env_list(name: str, default: list[str] | None = None) -> list[str]:
+    raw = os.getenv(name, "")
+    if raw.strip():
+        return [item.strip() for item in raw.split(",") if item.strip()]
+    return list(default or [])
 
 
 # Quick-start development settings - unsuitable for production
@@ -28,29 +39,23 @@ SECRET_KEY = os.getenv(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", "1").strip().lower() in ("1", "true", "yes")
+DEBUG = _env_bool("DJANGO_DEBUG", "1")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower() or "development"
 TEST_OTP_CODE = os.getenv("TEST_OTP_CODE", "12345").strip() or "12345"
 
-ALLOWED_HOSTS = [
+ALLOWED_HOSTS = _env_list(
+    "DJANGO_ALLOWED_HOSTS",
+    default=[
+        "localhost",
+        "127.0.0.1",
+        "[::1]",
         "w-sala.com",
         "www.w-sala.com",
-        
         "76.13.143.149",
-        "localhost",
-        "127.0.0.1"
-        
-]
+    ],
+)
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origin.strip()
-]
-CSRF_TRUSTED_ORIGINS = [
-    "https://w-sala.com",
-    "https://www.w-sala.com",
-]
+CSRF_TRUSTED_ORIGINS = _env_list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
 
 
 # Application definition
@@ -171,8 +176,8 @@ LOCALE_PATHS = [
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "/static/"
-#STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = Path(os.getenv("DJANGO_STATIC_ROOT", str(BASE_DIR / "staticfiles")))
+STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.getenv("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
@@ -215,9 +220,9 @@ SIMPLE_JWT = {
 
 # Reverse-proxy security (optional; controlled via env vars)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "0").strip().lower() in ("1", "true", "yes")
-SESSION_COOKIE_SECURE = os.getenv("DJANGO_SESSION_COOKIE_SECURE", "0").strip().lower() in ("1", "true", "yes")
-CSRF_COOKIE_SECURE = os.getenv("DJANGO_CSRF_COOKIE_SECURE", "0").strip().lower() in ("1", "true", "yes")
+SECURE_SSL_REDIRECT = _env_bool("DJANGO_SECURE_SSL_REDIRECT", "0")
+SESSION_COOKIE_SECURE = _env_bool("DJANGO_SESSION_COOKIE_SECURE", "0")
+CSRF_COOKIE_SECURE = _env_bool("DJANGO_CSRF_COOKIE_SECURE", "0")
 
 # SMS (multi-gateway)
 SMS_DEFAULT_PROVIDER = os.getenv("SMS_DEFAULT_PROVIDER", "console").strip() or "console"
@@ -237,18 +242,18 @@ SMS_PROVIDERS = {
     },
 }
 
-OTP_PROVIDER_REGISTRY = {
-    "email": "apps.accounts.infrastructure.otp_providers.email.EmailOtpProvider",
-    "sms": "apps.accounts.infrastructure.otp_providers.sms.SmsOtpProvider",
-}
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Email (SMTP)
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend").strip() or (
+    "django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.hostinger.com").strip() or "smtp.hostinger.com"
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587") or "587")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1").strip().lower() in ("1", "true", "yes")
+EMAIL_HOST_USER = (os.getenv("EMAIL_HOST_USER", "info@w-sala.com") or "info@w-sala.com").strip()
+EMAIL_HOST_PASSWORD = (os.getenv("EMAIL_HOST_PASSWORD", "YazYaz@2030") or "YazYaz@2030").strip()
+DEFAULT_FROM_EMAIL = (os.getenv("DEFAULT_FROM_EMAIL", "Wasla <info@w-sala.com>") or "").strip() or "Wasla <info@w-sala.com>"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"

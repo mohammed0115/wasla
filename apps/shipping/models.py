@@ -1,7 +1,16 @@
+"""
+Shipping models (MVP).
+
+AR: شحنات مرتبطة بالطلبات (carrier + tracking + status).
+EN: Shipments linked to orders (carrier + tracking + status).
+"""
+
 from django.db import models
 
 
 class Shipment(models.Model):
+    """Shipment record linked to an order."""
+
     STATUS_CHOICES = [
         ("ready", "Ready"),
         ("shipped", "Shipped"),

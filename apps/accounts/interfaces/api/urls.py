@@ -30,6 +30,7 @@ urlpatterns = [
         SelectBusinessTypesAPI.as_view(),
         name="api_onboarding_business_types",
     ),
+    path("onboarding/business/", SelectBusinessTypesAPI.as_view(), name="api_onboarding_business"),
     path("onboarding/store/", CreateStoreFromOnboardingAPI.as_view(), name="api_onboarding_store"),
     path("onboarding/status/", OnboardingStatusAPI.as_view(), name="api_onboarding_status"),
 ]

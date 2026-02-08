@@ -71,7 +71,7 @@ def _login_user(request: HttpRequest, user: object) -> None:
 
 def _next_step_url(step: MerchantNextStep) -> str:
     if step == MerchantNextStep.COMPLETE_PROFILE:
-        return reverse("onboarding:country")
+        return reverse("auth:complete_profile")
     if step == MerchantNextStep.OTP_VERIFY:
         return reverse("auth:otp_verify")
     if step == MerchantNextStep.DASHBOARD:
@@ -79,16 +79,26 @@ def _next_step_url(step: MerchantNextStep) -> str:
     if step == MerchantNextStep.ONBOARDING_COUNTRY:
         return reverse("onboarding:country")
     if step == MerchantNextStep.ONBOARDING_BUSINESS_TYPES:
-        return reverse("onboarding:business_types")
+        return reverse("onboarding:business")
     if step == MerchantNextStep.STORE_CREATE:
-        return reverse("onboarding:store")
+        return reverse("web:dashboard_setup_store")
     return reverse("onboarding:country")
+
+
+def _redirect_authenticated_to_step(request: HttpRequest) -> HttpResponse | None:
+    if not request.user.is_authenticated:
+        return None
+    step = ResolveMerchantNextStepUseCase.execute(
+        ResolveMerchantNextStepCommand(user=request.user, otp_required=False)
+    ).step
+    return redirect(_next_step_url(step))
 
 
 @require_http_methods(["GET", "POST"])
 def login_view(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect("web:dashboard")
+    redirected = _redirect_authenticated_to_step(request)
+    if redirected:
+        return redirected
 
     signup_form = MerchantSignupForm()
     form = MerchantLoginForm(
@@ -126,8 +136,9 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
 @require_http_methods(["GET", "POST"])
 def signup_view(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect("web:dashboard")
+    redirected = _redirect_authenticated_to_step(request)
+    if redirected:
+        return redirected
 
     login_form = MerchantLoginForm()
     form = MerchantSignupForm(
@@ -176,6 +187,11 @@ def signup_view(request: HttpRequest) -> HttpResponse:
 def complete_profile_view(request: HttpRequest) -> HttpResponse:
     if not request.user.is_authenticated:
         return redirect(reverse("auth:login"))
+    step = ResolveMerchantNextStepUseCase.execute(
+        ResolveMerchantNextStepCommand(user=request.user, otp_required=False)
+    ).step
+    if step != MerchantNextStep.COMPLETE_PROFILE:
+        return redirect(_next_step_url(step))
 
     profile = AccountProfile.objects.filter(user=request.user).first()
     form = MerchantSignupForm(
@@ -254,8 +270,9 @@ def otp_verify_view(request: HttpRequest) -> HttpResponse:
 
 @require_http_methods(["GET", "POST"])
 def otp_login_view(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect("web:dashboard")
+    redirected = _redirect_authenticated_to_step(request)
+    if redirected:
+        return redirected
 
     request_form = OtpLoginRequestForm(request.POST or None)
     verify_form = OtpLoginVerifyForm(request.POST or None)
@@ -314,8 +331,9 @@ def otp_login_view(request: HttpRequest) -> HttpResponse:
 
 @require_http_methods(["GET", "POST"])
 def auth_start_view(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect("web:dashboard")
+    redirected = _redirect_authenticated_to_step(request)
+    if redirected:
+        return redirected
 
     form = AuthStartForm(
         request.POST or None,
@@ -364,8 +382,9 @@ def auth_start_view(request: HttpRequest) -> HttpResponse:
 
 @require_http_methods(["GET", "POST"])
 def auth_verify_view(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect("web:dashboard")
+    redirected = _redirect_authenticated_to_step(request)
+    if redirected:
+        return redirected
 
     identifier = request.session.get("auth_identifier", "")
     if not identifier:

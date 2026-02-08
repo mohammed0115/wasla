@@ -8,6 +8,12 @@
 - مخططات ER/Architecture/Use‑Cases/Sequence: ملفات PDF داخل `Docs/`
 - سيناريوهات صفحات لوحة التحكم: `Docs/01_dashboard.txt` … `Docs/08_settings.txt`
 
+توثيق المطور (Developer docs):
+- دليل التشغيل المحلي: `Docs/DEVELOPER_GUIDE.md`
+- البنية التقنية: `Docs/TECHNICAL_ARCHITECTURE.md`
+- دليل السيرفر التجريبي + خطوات النشر: `Docs/STAGING_RUNBOOK.md`
+- سكربتات النشر (Ubuntu + Gunicorn + Nginx): `deployment/README.md`
+
 ---
 
 ## 1) الرؤية والنطاق (Scope)

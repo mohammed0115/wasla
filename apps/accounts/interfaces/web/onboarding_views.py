@@ -16,10 +16,6 @@ from apps.accounts.application.use_cases.select_business_types import (
     SelectBusinessTypesUseCase,
 )
 from apps.accounts.application.use_cases.select_country import SelectCountryCommand, SelectCountryUseCase
-from apps.accounts.application.use_cases.create_store_from_onboarding import (
-    CreateStoreFromOnboardingCommand,
-    CreateStoreFromOnboardingUseCase,
-)
 from apps.accounts.domain.errors import AccountValidationError
 from apps.accounts.domain.onboarding_policies import BUSINESS_TYPE_OPTIONS, COUNTRY_OPTIONS
 from apps.accounts.domain.post_auth_state_machine import MerchantNextStep
@@ -34,15 +30,19 @@ def _client_ip(request: HttpRequest) -> str | None:
 
 
 def _next_step_url(step: MerchantNextStep) -> str:
+    if step == MerchantNextStep.COMPLETE_PROFILE:
+        return reverse("auth:complete_profile")
+    if step == MerchantNextStep.OTP_VERIFY:
+        return reverse("auth:otp_verify")
     if step == MerchantNextStep.DASHBOARD:
         return reverse("web:dashboard")
     if step == MerchantNextStep.ONBOARDING_COUNTRY:
         return reverse("onboarding:country")
     if step == MerchantNextStep.ONBOARDING_BUSINESS_TYPES:
-        return reverse("onboarding:business_types")
+        return reverse("onboarding:business")
     if step == MerchantNextStep.STORE_CREATE:
         return reverse("web:dashboard_setup_store")
-    return reverse("onboarding:country")
+    return reverse("auth:complete_profile")
 
 
 @login_required
@@ -54,6 +54,12 @@ def start(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_http_methods(["GET", "POST"])
 def country(request: HttpRequest) -> HttpResponse:
+    step = ResolveMerchantNextStepUseCase.execute(
+        ResolveMerchantNextStepCommand(user=request.user, otp_required=False)
+    ).step
+    if step != MerchantNextStep.ONBOARDING_COUNTRY:
+        return redirect(_next_step_url(step))
+
     profile = AccountProfile.objects.filter(user=request.user).first()
     current_country = (profile.country if profile else "") or ""
 
@@ -72,7 +78,7 @@ def country(request: HttpRequest) -> HttpResponse:
         except AccountValidationError as exc:
             messages.error(request, str(exc))
         else:
-            return redirect("onboarding:business_types")
+            return redirect("onboarding:business")
 
     return render(
         request,
@@ -84,6 +90,12 @@ def country(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_http_methods(["GET", "POST"])
 def business_types(request: HttpRequest) -> HttpResponse:
+    step = ResolveMerchantNextStepUseCase.execute(
+        ResolveMerchantNextStepCommand(user=request.user, otp_required=False)
+    ).step
+    if step != MerchantNextStep.ONBOARDING_BUSINESS_TYPES:
+        return redirect(_next_step_url(step))
+
     profile = AccountProfile.objects.filter(user=request.user).first()
     selected = list(profile.business_types) if profile and profile.business_types else []
 
@@ -103,11 +115,11 @@ def business_types(request: HttpRequest) -> HttpResponse:
             messages.error(request, str(exc))
         else:
             selected = result.business_types
-            return redirect("onboarding:store")
+            return redirect("web:dashboard_setup_store")
 
     return render(
         request,
-        "onboarding/business_types.html",
+        "onboarding/business.html",
         {"options": BUSINESS_TYPE_OPTIONS, "selected": selected, "min": 1, "max": 5},
     )
 
@@ -115,19 +127,12 @@ def business_types(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_http_methods(["GET", "POST"])
 def store(request: HttpRequest) -> HttpResponse:
-    if request.method == "POST":
-        try:
-            result = CreateStoreFromOnboardingUseCase.execute(
-                CreateStoreFromOnboardingCommand(
-                    user=request.user,
-                    name=request.POST.get("name", ""),
-                    slug=request.POST.get("slug", ""),
-                )
-            )
-        except AccountValidationError as exc:
-            messages.error(request, str(exc))
-        else:
-            messages.success(request, "Store created successfully.")
-            return redirect("web:dashboard")
+    step = ResolveMerchantNextStepUseCase.execute(
+        ResolveMerchantNextStepCommand(user=request.user, otp_required=False)
+    ).step
+    if step != MerchantNextStep.STORE_CREATE:
+        return redirect(_next_step_url(step))
 
-    return render(request, "onboarding/store.html", {})
+    # AR: إنشاء المتجر يتم عبر Store Setup Wizard داخل `apps/tenants`.
+    # EN: Store creation is handled by the store setup wizard in `apps/tenants`.
+    return redirect("web:dashboard_setup_store")

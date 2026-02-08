@@ -43,13 +43,18 @@ class MerchantFlowValidator:
         User = get_user_model()
         user, _ = User.objects.get_or_create(
             username="merchant_flow_user",
-            defaults={"is_staff": False, "is_active": True},
+            defaults={"email": "merchant_flow_user@example.com", "is_staff": False, "is_active": True},
         )
+        if not (getattr(user, "email", "") or "").strip():
+            user.email = "merchant_flow_user@example.com"
         user.set_password("merchant12345")
-        user.save(update_fields=["password"])
+        user.save(update_fields=["password", "email"])
 
         logged_in = client.login(username="merchant_flow_user", password="merchant12345")
         if logged_in:
+            from django.utils import timezone
+
+            from apps.accounts.models import AccountProfile
             from apps.tenants.models import Tenant, TenantMembership
 
             tenant = Tenant.objects.filter(slug=tenant_slug, is_active=True).first()
@@ -59,6 +64,19 @@ class MerchantFlowValidator:
                     user=user,
                     defaults={"role": TenantMembership.ROLE_OWNER, "is_active": True},
                 )
+
+            # Ensure the merchant can access dashboard pages (profile + onboarding completed).
+            phone_suffix = uuid.uuid4().int % 10**7
+            AccountProfile.objects.update_or_create(
+                user=user,
+                defaults={
+                    "full_name": "Merchant Flow User",
+                    "phone": f"050{phone_suffix:07d}",
+                    "country": "SA",
+                    "business_types": ["fashion"],
+                    "accepted_terms_at": timezone.now(),
+                },
+            )
             return FlowStepResult("login", True)
         return FlowStepResult("login", False, "Failed to login via Django session auth.")
 

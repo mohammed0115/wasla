@@ -1,7 +1,21 @@
+"""
+Customers models (MVP).
+
+AR:
+- بيانات العملاء وعناوينهم.
+- عزل المتاجر عبر `store_id`.
+
+EN:
+- Customer records and addresses.
+- Tenant isolation via `store_id`.
+"""
+
 from django.db import models
 
 
 class Customer(models.Model):
+    """Customer profile within a store."""
+
     store_id = models.IntegerField(default=1, db_index=True)
     email = models.EmailField()
     full_name = models.CharField(max_length=255)
@@ -21,6 +35,8 @@ class Customer(models.Model):
 
 
 class Address(models.Model):
+    """Customer address record."""
+
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="addresses")
     line1 = models.CharField(max_length=255)
     city = models.CharField(max_length=100)

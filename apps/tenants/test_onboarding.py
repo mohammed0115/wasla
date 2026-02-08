@@ -5,7 +5,9 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
+from apps.accounts.models import AccountProfile
 from apps.subscriptions.models import SubscriptionPlan
 from apps.subscriptions.services.subscription_service import SubscriptionService
 from apps.catalog.services.product_service import ProductService
@@ -58,7 +60,7 @@ class MerchantStoreCreationScenarioTests(TestCase):
         self.assertEqual(country.status_code, 200)
 
         business_types = self.client.post(
-            reverse("onboarding:business_types"),
+            reverse("onboarding:business"),
             data={"business_types": ["fashion"]},
             follow=True,
         )
@@ -165,12 +167,21 @@ class MerchantStoreCreationScenarioTests(TestCase):
 
     def test_cannot_access_other_tenant_web(self):
         User = get_user_model()
-        u1 = User.objects.create_user(username="u1", password="pass12345")
+        u1 = User.objects.create_user(username="u1", email="u1@example.com", password="pass12345")
         u2 = User.objects.create_user(username="u2", password="pass12345")
         t1 = Tenant.objects.create(slug="t1", name="T1", is_active=True)
         t2 = Tenant.objects.create(slug="t2", name="T2", is_active=True)
         TenantMembership.objects.create(tenant=t1, user=u1, role=TenantMembership.ROLE_OWNER)
         TenantMembership.objects.create(tenant=t2, user=u2, role=TenantMembership.ROLE_OWNER)
+
+        AccountProfile.objects.create(
+            user=u1,
+            full_name="U1 Merchant",
+            phone="0501111111",
+            country="SA",
+            business_types=["fashion"],
+            accepted_terms_at=timezone.now(),
+        )
 
         self.assertTrue(self.client.login(username="u1", password="pass12345"))
 

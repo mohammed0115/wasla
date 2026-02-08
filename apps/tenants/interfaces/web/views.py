@@ -75,7 +75,7 @@ def dashboard_setup_store(request: HttpRequest) -> HttpResponse:
     if next_step == MerchantNextStep.ONBOARDING_COUNTRY:
         return redirect("onboarding:country")
     if next_step == MerchantNextStep.ONBOARDING_BUSINESS_TYPES:
-        return redirect("onboarding:business_types")
+        return redirect("onboarding:business")
 
     form = StoreInfoSetupForm(request.POST or None)
     if request.method == "POST" and form.is_valid():

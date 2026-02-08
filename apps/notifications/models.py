@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+"""
+Notifications models (MVP).
+
+AR:
+- يحتوي OTP عبر البريد (EmailOtp) مع hashing آمن والتحقق.
+- يستخدم SECRET_KEY لتوليد HMAC (لا تخزن الكود بصيغته الأصلية).
+
+EN:
+- Contains email OTP (EmailOtp) with secure hashing and verification.
+- Uses SECRET_KEY to compute HMAC (never stores the plain code).
+"""
+
 import hashlib
 import hmac
 import secrets
@@ -12,6 +24,8 @@ from django.utils import timezone
 
 
 class EmailOtp(models.Model):
+    """Email OTP record (hashed code) with TTL and limited attempts."""
+
     PURPOSE_LOGIN = "login"
     PURPOSE_REGISTER = "register"
     PURPOSE_RESET = "reset"
@@ -67,4 +81,3 @@ class EmailOtp(models.Model):
             return False
         expected = self.hash_code(email=self.email, purpose=self.purpose, code=code)
         return hmac.compare_digest(expected, self.code_hash)
-

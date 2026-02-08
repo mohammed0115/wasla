@@ -94,15 +94,15 @@ def _next_step_url(*, step: MerchantNextStep) -> str:
     if step == MerchantNextStep.OTP_VERIFY:
         return reverse("auth:otp_verify")
     if step == MerchantNextStep.COMPLETE_PROFILE:
-        return reverse("onboarding:country")
+        return reverse("auth:complete_profile")
     if step == MerchantNextStep.DASHBOARD:
         return reverse("web:dashboard")
     if step == MerchantNextStep.ONBOARDING_COUNTRY:
         return reverse("onboarding:country")
     if step == MerchantNextStep.ONBOARDING_BUSINESS_TYPES:
-        return reverse("onboarding:business_types")
+        return reverse("onboarding:business")
     if step == MerchantNextStep.STORE_CREATE:
-        return reverse("onboarding:store")
+        return reverse("web:dashboard_setup_store")
     return reverse("onboarding:country")
 
 
@@ -323,7 +323,7 @@ class SelectCountryAPI(APIView):
         except AccountValidationError as exc:
             return _error(message=str(exc), field=getattr(exc, "field", None), http_status=status.HTTP_400_BAD_REQUEST)
 
-        next_step = reverse("onboarding:business_types")
+        next_step = reverse("onboarding:business")
         return _success(data={"country": result.country}, next_step=next_step)
 
 
@@ -351,7 +351,7 @@ class SelectBusinessTypesAPI(APIView):
         except AccountValidationError as exc:
             return _error(message=str(exc), field=getattr(exc, "field", None), http_status=status.HTTP_400_BAD_REQUEST)
 
-        next_step = reverse("onboarding:store")
+        next_step = reverse("web:dashboard_setup_store")
         return _success(data={"business_types": result.business_types}, next_step=next_step)
 
 
