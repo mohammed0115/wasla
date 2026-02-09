@@ -2,7 +2,16 @@ from __future__ import annotations
 
 import re
 
-from .errors import StoreNameInvalidError, StoreSlugInvalidError, StoreSlugReservedError
+from .errors import (
+    CustomDomainInvalidError,
+    CustomDomainNotAllowedError,
+    CustomDomainReservedError,
+    CustomDomainTakenError,
+    StoreNameInvalidError,
+    StoreSlugInvalidError,
+    StoreSlugReservedError,
+)
+from apps.tenants.models import StoreDomain, Tenant
 
 RESERVED_TENANT_SLUGS: set[str] = {
     "admin",
@@ -11,6 +20,20 @@ RESERVED_TENANT_SLUGS: set[str] = {
     "dashboard",
     "store",
 }
+
+RESERVED_CUSTOM_DOMAINS: set[str] = {
+    "localhost",
+    "example.com",
+    "example.net",
+    "example.org",
+}
+
+RESERVED_CUSTOM_DOMAIN_SUFFIXES: tuple[str, ...] = (
+    ".local",
+    ".internal",
+    ".invalid",
+    ".test",
+)
 
 _SUBDOMAIN_SLUG_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$")
 _HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
@@ -70,15 +93,75 @@ def validate_hex_color(raw: str) -> str:
 
 
 def normalize_custom_domain(raw: str) -> str:
-    return (raw or "").strip().lower()
+    return (raw or "").strip().lower().rstrip(".")
+
+
+def normalize_domain(raw: str) -> str:
+    return normalize_custom_domain(raw)
 
 
 def validate_custom_domain(raw: str) -> str:
     domain = normalize_custom_domain(raw)
     if not domain:
         return ""
+    return validate_domain_format(domain)
+
+
+def validate_domain_format(raw: str) -> str:
+    domain = normalize_custom_domain(raw)
+    if not domain:
+        raise CustomDomainInvalidError("Custom domain is required.")
     if "://" in domain or "/" in domain or " " in domain:
-        raise StoreSlugInvalidError("Custom domain must be a hostname only (no scheme/path/spaces).")
+        raise CustomDomainInvalidError("Custom domain must be a hostname only (no scheme/path/spaces).")
     if not _DOMAIN_RE.match(domain):
-        raise StoreSlugInvalidError("Custom domain must be a valid hostname like example.com.")
+        raise CustomDomainInvalidError("Custom domain must be a valid hostname like example.com.")
     return domain
+
+
+def prevent_reserved_domains(domain: str) -> None:
+    normalized = normalize_custom_domain(domain)
+    if normalized in RESERVED_CUSTOM_DOMAINS:
+        raise CustomDomainReservedError("This domain is reserved.")
+    if any(normalized.endswith(suffix) for suffix in RESERVED_CUSTOM_DOMAIN_SUFFIXES):
+        raise CustomDomainReservedError("This domain suffix is reserved.")
+
+
+def prevent_platform_domain_usage(domain: str, *, base_domain: str, blocked_domains: list[str] | None = None) -> None:
+    normalized = normalize_custom_domain(domain)
+    base = normalize_custom_domain(base_domain).lstrip(".")
+    if base and (normalized == base or normalized.endswith(f".{base}")):
+        raise CustomDomainNotAllowedError("Platform domains cannot be used as custom domains.")
+
+    for blocked in blocked_domains or []:
+        blocked_norm = normalize_custom_domain(blocked).lstrip(".")
+        if blocked_norm and (normalized == blocked_norm or normalized.endswith(f".{blocked_norm}")):
+            raise CustomDomainNotAllowedError("This domain is not allowed.")
+
+
+def ensure_domain_not_taken(domain: str, *, tenant_id: int | None = None) -> None:
+    normalized = normalize_custom_domain(domain)
+    if not normalized:
+        raise CustomDomainInvalidError("Custom domain is required.")
+
+    taken = StoreDomain.objects.filter(domain=normalized)
+    if tenant_id is not None:
+        taken = taken.exclude(tenant_id=tenant_id)
+    if taken.exists():
+        raise CustomDomainTakenError("This domain is already connected to another store.")
+
+    legacy = Tenant.objects.filter(domain=normalized)
+    if tenant_id is not None:
+        legacy = legacy.exclude(id=tenant_id)
+    if legacy.exists():
+        raise CustomDomainTakenError("This domain is already connected to another store.")
+
+
+def ensure_one_active_domain_per_store(*, tenant_id: int, allow_domain_id: int | None = None) -> None:
+    qs = StoreDomain.objects.filter(
+        tenant_id=tenant_id,
+        status__in=(StoreDomain.STATUS_ACTIVE, StoreDomain.STATUS_SSL_ACTIVE),
+    )
+    if allow_domain_id is not None:
+        qs = qs.exclude(id=allow_domain_id)
+    if qs.exists():
+        raise CustomDomainNotAllowedError("Only one active custom domain is allowed per store.")

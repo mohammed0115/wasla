@@ -32,7 +32,14 @@ class Order(models.Model):
         "customers.Customer", on_delete=models.PROTECT, related_name="orders"
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    payment_status = models.CharField(max_length=20, default="pending")
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    currency = models.CharField(max_length=10, default="SAR")
+    customer_name = models.CharField(max_length=255, blank=True, default="")
+    customer_email = models.EmailField(blank=True, default="")
+    customer_phone = models.CharField(max_length=32, blank=True, default="")
+    shipping_address_json = models.JSONField(default=dict, blank=True)
+    shipping_method_code = models.CharField(max_length=64, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:

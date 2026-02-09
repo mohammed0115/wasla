@@ -7,9 +7,12 @@ from django.utils import timezone
 from datetime import timedelta
 
 from apps.accounts.application.services.otp_provider_resolver import OTPProviderResolver
+from apps.accounts.domain.errors import AccountValidationError
 from apps.accounts.domain.hybrid_policies import validate_identifier, validate_otp_rules
 from apps.accounts.domain.otp_policies_hybrid import generate_otp_code, hash_otp, otp_expires_at
 from apps.accounts.models import OTPChallenge
+from apps.analytics.application.telemetry import TelemetryService
+from apps.analytics.domain.types import ActorContext
 
 
 @dataclass(frozen=True)
@@ -33,66 +36,107 @@ class RequestOtpUseCase:
     @staticmethod
     @transaction.atomic
     def execute(cmd: RequestOtpCommand) -> RequestOtpResult:
-        identifier, _ = validate_identifier(cmd.identifier)
-        now = timezone.now()
+        try:
+            identifier, _ = validate_identifier(cmd.identifier)
+            now = timezone.now()
 
-        recent_count = OTPChallenge.objects.filter(
-            identifier=identifier, channel=cmd.channel, created_at__gte=now - timedelta(minutes=10)
-        ).count()
+            recent_count = OTPChallenge.objects.filter(
+                identifier=identifier, channel=cmd.channel, created_at__gte=now - timedelta(minutes=10)
+            ).count()
 
-        existing = (
-            OTPChallenge.objects.select_for_update()
-            .filter(
-                identifier=identifier,
-                channel=cmd.channel,
-                purpose=cmd.purpose,
-                consumed_at__isnull=True,
-                expires_at__gt=now,
+            existing = (
+                OTPChallenge.objects.select_for_update()
+                .filter(
+                    identifier=identifier,
+                    channel=cmd.channel,
+                    purpose=cmd.purpose,
+                    consumed_at__isnull=True,
+                    expires_at__gt=now,
+                )
+                .order_by("-id")
+                .first()
             )
-            .order_by("-id")
-            .first()
-        )
-        validate_otp_rules(
-            recent_count=recent_count,
-            has_active=bool(existing),
-            attempts=existing.attempt_count if existing else 0,
-        )
-
-        if existing and existing.last_sent_at and existing.last_sent_at >= now - timedelta(minutes=10):
-            return RequestOtpResult(
-                otp_id=existing.id,
-                expires_at=existing.expires_at,
-                sent=False,
-                identifier=identifier,
+            validate_otp_rules(
+                recent_count=recent_count,
+                has_active=bool(existing),
+                attempts=existing.attempt_count if existing else 0,
             )
 
-        if existing:
-            code = generate_otp_code()
-            existing.code_hash = hash_otp(otp_id=existing.id, code=code)
-            existing.expires_at = otp_expires_at()
-            existing.last_sent_at = now
-            existing.attempt_count = 0
-            existing.save(update_fields=["code_hash", "expires_at", "last_sent_at", "attempt_count"])
-            otp_id = existing.id
-            expires_at = existing.expires_at
-        else:
-            challenge = OTPChallenge.objects.create(
-                identifier=identifier,
-                channel=cmd.channel,
-                purpose=cmd.purpose,
-                code_hash="",
-                expires_at=otp_expires_at(),
-                last_sent_at=now,
-                ip_address=cmd.ip_address,
-                user_agent=cmd.user_agent,
+            if existing and existing.last_sent_at and existing.last_sent_at >= now - timedelta(minutes=10):
+                TelemetryService.track(
+                    event_name="auth.otp_requested",
+                    tenant_ctx=None,
+                    actor_ctx=ActorContext(
+                        actor_type="ANON",
+                        ip_address=cmd.ip_address,
+                        user_agent=cmd.user_agent,
+                    ),
+                    properties={"channel": cmd.channel, "purpose": cmd.purpose, "sent": False},
+                )
+                return RequestOtpResult(
+                    otp_id=existing.id,
+                    expires_at=existing.expires_at,
+                    sent=False,
+                    identifier=identifier,
+                )
+
+            if existing:
+                code = generate_otp_code()
+                existing.code_hash = hash_otp(otp_id=existing.id, code=code)
+                existing.expires_at = otp_expires_at()
+                existing.last_sent_at = now
+                existing.attempt_count = 0
+                existing.save(update_fields=["code_hash", "expires_at", "last_sent_at", "attempt_count"])
+                otp_id = existing.id
+                expires_at = existing.expires_at
+            else:
+                challenge = OTPChallenge.objects.create(
+                    identifier=identifier,
+                    channel=cmd.channel,
+                    purpose=cmd.purpose,
+                    code_hash="",
+                    expires_at=otp_expires_at(),
+                    last_sent_at=now,
+                    ip_address=cmd.ip_address,
+                    user_agent=cmd.user_agent,
+                )
+                code = generate_otp_code()
+                challenge.code_hash = hash_otp(otp_id=challenge.id, code=code)
+                challenge.save(update_fields=["code_hash"])
+                otp_id = challenge.id
+                expires_at = challenge.expires_at
+
+            provider = OTPProviderResolver.resolve(cmd.channel)
+            _ = provider.send_otp(identifier=identifier, channel=cmd.channel, code=code)
+
+            TelemetryService.track(
+                event_name="auth.otp_requested",
+                tenant_ctx=None,
+                actor_ctx=ActorContext(
+                    actor_type="ANON",
+                    ip_address=cmd.ip_address,
+                    user_agent=cmd.user_agent,
+                ),
+                properties={"channel": cmd.channel, "purpose": cmd.purpose, "sent": True},
             )
-            code = generate_otp_code()
-            challenge.code_hash = hash_otp(otp_id=challenge.id, code=code)
-            challenge.save(update_fields=["code_hash"])
-            otp_id = challenge.id
-            expires_at = challenge.expires_at
-
-        provider = OTPProviderResolver.resolve(cmd.channel)
-        _ = provider.send_otp(identifier=identifier, channel=cmd.channel, code=code)
-
-        return RequestOtpResult(otp_id=otp_id, expires_at=expires_at, sent=True, identifier=identifier)
+            return RequestOtpResult(otp_id=otp_id, expires_at=expires_at, sent=True, identifier=identifier)
+        except AccountValidationError as exc:
+            reason_code = "otp_request_failed"
+            message = (str(exc) or "").lower()
+            if "identifier" in message:
+                reason_code = "invalid_identifier"
+            elif "too many otp requests" in message:
+                reason_code = "otp_rate_limited"
+            elif "too many otp attempts" in message:
+                reason_code = "otp_too_many_attempts"
+            TelemetryService.track(
+                event_name="auth.otp_failed",
+                tenant_ctx=None,
+                actor_ctx=ActorContext(
+                    actor_type="ANON",
+                    ip_address=cmd.ip_address,
+                    user_agent=cmd.user_agent,
+                ),
+                properties={"channel": cmd.channel, "purpose": cmd.purpose, "reason_code": reason_code},
+            )
+            raise

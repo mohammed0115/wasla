@@ -1,4 +1,5 @@
 {% extends "storefront/base.html" %}
+{% load i18n %}
 {% block title %}{{ tenant.name }} | المتجر{% endblock %}
 
 {% block content %}
@@ -26,6 +27,9 @@
           <div class="fw-bold">{{ p.name }}</div>
           <div class="text-muted small">{{ p.sku }}</div>
           <div class="mt-2">{{ p.price }}</div>
+          <a class="btn btn-sm btn-outline-primary mt-3" href="{% url 'web:store_product_detail' tenant.slug p.id %}">
+            {% trans "View details" %}
+          </a>
         </div>
       </div>
     </div>
@@ -36,4 +40,3 @@
   {% endfor %}
 </div>
 {% endblock %}
-

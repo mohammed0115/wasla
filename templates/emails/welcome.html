@@ -1,5 +1,9 @@
-<div dir="rtl" style="font-family: Arial, sans-serif">
-  <h2>مرحباً{% if full_name %} {{ full_name }}{% endif %}</h2>
-  <p>شكراً لتسجيلك في متجر وصلة.</p>
+{% load i18n %}
+<div dir="{{ LANGUAGE_DIR|default:'rtl' }}" style="font-family: Arial, sans-serif">
+  {% if full_name %}
+    <h2>{% blocktrans with name=full_name %}Welcome {{ name }}{% endblocktrans %}</h2>
+  {% else %}
+    <h2>{% trans "Welcome" %}</h2>
+  {% endif %}
+  <p>{% trans "Thanks for joining Wasla." %}</p>
 </div>
-

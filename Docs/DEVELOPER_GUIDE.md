@@ -10,6 +10,7 @@
 - **Modules docs (per app):** `apps/<module>/README.md`
 - **Technical architecture:** `Docs/TECHNICAL_ARCHITECTURE.md`
 - **Staging runbook (deployment & ops):** `Docs/STAGING_RUNBOOK.md`
+- **Custom domain mapping:** `Docs/CUSTOM_DOMAIN_MAPPING.md`
 - **Deployment scripts:** `deployment/README.md`
 
 ---
@@ -73,6 +74,7 @@ python manage.py runserver
 - `DJANGO_STATIC_ROOT`, `DJANGO_MEDIA_ROOT` (production/server)
 - Email (SMTP): `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL`
 - SMS: see `Docs/SMS_Module.md`
+- Custom domains: see `Docs/CUSTOM_DOMAIN_MAPPING.md`
 
 ---
 
@@ -124,4 +126,3 @@ python manage.py test
 - Keep views thin; orchestrate flows in use-cases/services.
 - Business rules and validation belong in `domain/` or `application/policies`.
 - Anything that must be tenant-isolated should filter by `tenant_id` / `store_id`.
-

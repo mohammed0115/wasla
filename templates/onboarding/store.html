@@ -1,24 +1,26 @@
 {% extends "layouts/auth_base.html" %}
-{% block title %}إنشاء المتجر | Wasla{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Create store" %} | Wasla{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-12 col-md-8 col-lg-6 col-xl-5">
     <div class="card shadow-sm">
       <div class="card-body p-4">
-        <h5 class="mb-3">إنشاء المتجر</h5>
+        <h5 class="mb-3">{% trans "Create store" %}</h5>
         <form method="post">
           {% csrf_token %}
           <div class="mb-3">
-            <label class="form-label">اسم المتجر</label>
-            <input class="form-control" name="name" placeholder="مثال: متجر وصلة" required />
+            <label class="form-label">{% trans "Store name" %}</label>
+            <input class="form-control" name="name" placeholder="{% trans 'Example: Wasla store' %}" required />
           </div>
           <div class="mb-3">
-            <label class="form-label">Slug</label>
+            <label class="form-label">{% trans "Slug" %}</label>
             <input class="form-control" name="slug" placeholder="wasla-store" required />
-            <div class="form-text">حروف صغيرة وأرقام وشرطة فقط.</div>
+            <div class="form-text">{% trans "Lowercase letters, numbers, and dashes only." %}</div>
           </div>
-          <button class="btn btn-primary w-100" type="submit">إنشاء المتجر</button>
+          <button class="btn btn-primary w-100" type="submit">{% trans "Create store" %}</button>
         </form>
       </div>
     </div>

@@ -1,2 +1,1 @@
-تأكيد الطلب {{ order_number }}
-
+{% load i18n %}{% blocktrans with order_number=order_number %}Order confirmation {{ order_number }}{% endblocktrans %}

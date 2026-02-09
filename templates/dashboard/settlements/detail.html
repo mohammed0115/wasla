@@ -1,0 +1,71 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Settlement Detail" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Settlement Detail" %}</h1>
+    <div class="text-muted small">{{ detail.settlement.period_start }} - {{ detail.settlement.period_end }}</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'web:dashboard_settlements' %}">{% trans "Back" %}</a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">{% trans "Gross" %}</div>
+        <div class="h5 mb-0">{{ detail.settlement.gross_amount }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">{% trans "Fees" %}</div>
+        <div class="h5 mb-0">{{ detail.settlement.fees_amount }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">{% trans "Net" %}</div>
+        <div class="h5 mb-0">{{ detail.settlement.net_amount }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold">{% trans "Orders" %}</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>{% trans "Order" %}</th>
+          <th class="text-nowrap">{% trans "Order Amount" %}</th>
+          <th class="text-nowrap">{% trans "Fee" %}</th>
+          <th class="text-nowrap">{% trans "Net" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in detail.items %}
+          <tr>
+            <td>#{{ item.order_id }}</td>
+            <td class="text-nowrap">{{ item.order_amount }}</td>
+            <td class="text-nowrap">{{ item.fee_amount }}</td>
+            <td class="text-nowrap">{{ item.net_amount }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">{% trans "No items for this settlement." %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

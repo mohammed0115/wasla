@@ -2,11 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser
 
 from apps.tenants.application.policies.ownership import EnsureTenantOwnershipPolicy
-from apps.tenants.domain.policies import validate_custom_domain
-from apps.tenants.models import Tenant
+from apps.tenants.domain.policies import (
+    prevent_platform_domain_usage,
+    prevent_reserved_domains,
+    validate_custom_domain,
+)
+from apps.tenants.models import StoreDomain, Tenant
 
 
 @dataclass(frozen=True)
@@ -31,10 +36,14 @@ class ValidateCustomDomainUseCase:
         if not normalized:
             return ValidateCustomDomainResult(normalized_domain="", is_conflict=False)
 
-        conflict = (
-            Tenant.objects.filter(domain=normalized)
-            .exclude(id=cmd.tenant.id)
-            .exists()
+        prevent_reserved_domains(normalized)
+        prevent_platform_domain_usage(
+            normalized,
+            base_domain=getattr(settings, "WASSLA_BASE_DOMAIN", ""),
+            blocked_domains=getattr(settings, "CUSTOM_DOMAIN_BLOCKED_DOMAINS", []),
         )
-        return ValidateCustomDomainResult(normalized_domain=normalized, is_conflict=conflict)
 
+        conflict = StoreDomain.objects.filter(domain=normalized).exclude(tenant=cmd.tenant).exists()
+        if not conflict:
+            conflict = Tenant.objects.filter(domain=normalized).exclude(id=cmd.tenant.id).exists()
+        return ValidateCustomDomainResult(normalized_domain=normalized, is_conflict=conflict)

@@ -1,4 +1,4 @@
-تم استلام طلبك
-رقم الطلب: {{ order_number }}
-المجموع: {{ total_amount }} SAR
-
+{% load i18n %}
+{% trans "We received your order." %}
+{% blocktrans with order_number=order_number %}Order number: {{ order_number }}{% endblocktrans %}
+{% blocktrans with total=total_amount %}Total: {{ total }} SAR{% endblocktrans %}

@@ -13,6 +13,8 @@ from apps.accounts.domain.policies import ensure_terms_accepted, validate_email,
 from apps.accounts.domain.state_machine import MerchantAuthStateMachine
 from apps.accounts.models import AccountProfile, OnboardingProfile
 from apps.accounts.services.audit_service import AccountAuditService
+from apps.analytics.application.telemetry import TelemetryService, actor_from_user
+from apps.analytics.domain.types import ObjectRef
 
 
 @dataclass(frozen=True)
@@ -71,6 +73,13 @@ class RegisterMerchantUseCase:
             ip_address=cmd.ip_address,
             user_agent=cmd.user_agent,
             metadata={"email": email, "phone": phone},
+        )
+        TelemetryService.track(
+            event_name="auth.registered",
+            tenant_ctx=None,
+            actor_ctx=actor_from_user(user=user, actor_type="MERCHANT"),
+            object_ref=ObjectRef(object_type="USER", object_id=user.id),
+            properties={"source": "register"},
         )
 
         otp_required = True

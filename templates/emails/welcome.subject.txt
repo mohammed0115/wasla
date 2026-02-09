@@ -1,2 +1,1 @@
-مرحبا بك في وصلة
-
+{% load i18n %}{% trans "Welcome to Wasla" %}

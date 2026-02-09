@@ -28,3 +28,49 @@ class Payment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.order} - {self.status}"
+
+
+class PaymentIntent(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("requires_action", "Requires action"),
+        ("succeeded", "Succeeded"),
+        ("failed", "Failed"),
+    ]
+
+    store_id = models.IntegerField(db_index=True)
+    order = models.ForeignKey(
+        "orders.Order", on_delete=models.PROTECT, related_name="payment_intents"
+    )
+    provider_code = models.CharField(max_length=50)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(max_length=10, default="SAR")
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default="pending")
+    provider_reference = models.CharField(max_length=120, blank=True, default="")
+    idempotency_key = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["store_id", "provider_code", "status"]),
+            models.Index(fields=["provider_code", "provider_reference"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.provider_code}:{self.provider_reference or self.idempotency_key}"
+
+
+class PaymentEvent(models.Model):
+    provider_code = models.CharField(max_length=50)
+    event_id = models.CharField(max_length=120)
+    payload_json = models.JSONField(default=dict, blank=True)
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["provider_code", "event_id"]),
+            models.Index(fields=["received_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.provider_code}:{self.event_id}"

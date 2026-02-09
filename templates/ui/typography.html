@@ -1,0 +1,10 @@
+{% load i18n %}
+<div class="wasla-typography {{ wrapper_classes|default:'' }}">
+  <h1 class="h3 mb-3">{{ heading|default:_("Section title") }}</h1>
+  {% if lead %}
+    <p class="lead">{{ lead }}</p>
+  {% endif %}
+  {% if body %}
+    <p class="text-muted mb-0">{{ body }}</p>
+  {% endif %}
+</div>

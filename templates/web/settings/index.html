@@ -97,4 +97,82 @@
     </div>
   </div>
 </div>
+
+<div class="row g-3 mt-1">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">Custom Domains | الدومينات الخاصة</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'web:custom_domain_add' %}" class="mb-3">
+          {% csrf_token %}
+          <label class="form-label">Add domain / إضافة دومين</label>
+          <div class="input-group">
+            {{ custom_domain_form.domain }}
+            <button class="btn btn-outline-primary" type="submit">Connect</button>
+          </div>
+          <div class="text-muted small mt-2">
+            Point your DNS to this server, then verify. Use A record to IP or CNAME to the platform.
+          </div>
+        </form>
+
+        <div class="border rounded p-3 mb-3 bg-light">
+          <div class="fw-bold mb-2">DNS Instructions | تعليمات DNS</div>
+          {% if custom_domain_server_ip %}
+            <div class="small">A @ → {{ custom_domain_server_ip }}</div>
+          {% endif %}
+          {% if custom_domain_cname_target %}
+            <div class="small">CNAME @ → {{ custom_domain_cname_target }}</div>
+          {% endif %}
+          <div class="small text-muted">Verification path: {{ custom_domain_verification_prefix }}/&lt;token&gt;</div>
+        </div>
+
+        {% if custom_domains %}
+          {% for domain in custom_domains %}
+            <div class="border rounded p-3 mb-2">
+              <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="fw-bold">{{ domain.domain }}</div>
+                  <div class="small text-muted">Token: {{ domain.verification_token }}</div>
+                  <div class="small text-muted">
+                    Verify URL: {{ domain.domain }}{{ custom_domain_verification_prefix }}/{{ domain.verification_token }}
+                  </div>
+                  {% if domain.verified_at %}
+                    <div class="small text-muted">Verified at: {{ domain.verified_at }}</div>
+                  {% endif %}
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  {% if domain.status == "ACTIVE" %}
+                    <span class="badge text-bg-success">Active</span>
+                  {% elif domain.status == "VERIFYING" %}
+                    <span class="badge text-bg-info">Verifying</span>
+                  {% elif domain.status == "FAILED" %}
+                    <span class="badge text-bg-danger">Failed</span>
+                  {% elif domain.status == "DISABLED" %}
+                    <span class="badge text-bg-secondary">Disabled</span>
+                  {% else %}
+                    <span class="badge text-bg-warning">Pending</span>
+                  {% endif %}
+                  {% if domain.status != "ACTIVE" and domain.status != "DISABLED" %}
+                    <form method="post" action="{% url 'web:custom_domain_verify' domain.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-success" type="submit">Verify</button>
+                    </form>
+                  {% endif %}
+                  {% if domain.status != "DISABLED" %}
+                    <form method="post" action="{% url 'web:custom_domain_disable' domain.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger" type="submit">Disable</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted">No custom domains yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

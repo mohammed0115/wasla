@@ -1,0 +1,29 @@
+{% extends "storefront/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Checkout - Shipping" %} | Wasla{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-body">
+        <h1 class="h4 mb-3">{% trans "Shipping method" %}</h1>
+        <form method="post">
+          {% csrf_token %}
+          <div class="d-grid gap-2">
+            {% for method in methods %}
+              <label class="btn btn-outline-primary text-start">
+                <input class="form-check-input me-2" type="radio" name="method_code" value="{{ method.code }}" required />
+                <span>{{ method.label }}</span>
+                <span class="text-muted small ms-2">({{ method.fee }})</span>
+              </label>
+            {% endfor %}
+          </div>
+          <button class="btn btn-primary w-100 mt-4" type="submit">{% trans "Continue to payment" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

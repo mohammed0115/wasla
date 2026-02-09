@@ -1,12 +1,14 @@
 {% extends "layouts/auth_base.html" %}
-{% block title %}إكمال البيانات | Wasla{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Complete profile" %} | Wasla{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-12 col-md-8 col-lg-6 col-xl-5">
     <div class="card shadow-sm">
       <div class="card-body p-4">
-        <h5 class="mb-3">أكمل بيانات الحساب</h5>
+        <h5 class="mb-3">{% trans "Complete your account details" %}</h5>
 
         <form method="post">
           {% csrf_token %}
@@ -45,7 +47,7 @@
             {% if form.accept_terms.errors %}<div class="text-danger small mt-1">{{ form.accept_terms.errors|striptags }}</div>{% endif %}
           </div>
 
-          <button class="btn btn-primary w-100" type="submit">متابعة</button>
+          <button class="btn btn-primary w-100" type="submit">{% trans "Continue" %}</button>
         </form>
       </div>
     </div>

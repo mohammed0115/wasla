@@ -1,0 +1,49 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Experiments" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Experiments" %}</h1>
+    <div class="text-muted small">{% trans "Feature flags and A/B tests." %}</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'web:dashboard_analytics_events' %}">{% trans "Events" %}</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>{% trans "Key" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Start" %}</th>
+          <th>{% trans "End" %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in experiments %}
+          <tr>
+            <td>{{ exp.key }}</td>
+            <td>{{ exp.status }}</td>
+            <td>{{ exp.start_at|default:"-" }}</td>
+            <td>{{ exp.end_at|default:"-" }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'web:dashboard_analytics_experiment_detail' exp.key %}">
+                {% trans "View" %}
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">{% trans "No experiments yet." %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

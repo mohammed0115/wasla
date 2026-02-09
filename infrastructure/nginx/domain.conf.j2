@@ -1,0 +1,33 @@
+server {
+    listen 80;
+    server_name {{ domain }};
+    {% if force_https and ssl_cert_path and ssl_key_path %}
+    return 301 https://$host$request_uri;
+    {% endif %}
+    location /.well-known/wassla-domain-verification/ {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass {{ upstream }};
+    }
+    location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass {{ upstream }};
+    }
+}
+
+{% if ssl_cert_path and ssl_key_path %}
+server {
+    listen 443 ssl;
+    server_name {{ domain }};
+    ssl_certificate {{ ssl_cert_path }};
+    ssl_certificate_key {{ ssl_key_path }};
+    location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass {{ upstream }};
+    }
+}
+{% endif %}

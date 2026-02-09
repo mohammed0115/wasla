@@ -1,6 +1,6 @@
-<div dir="rtl" style="font-family: Arial, sans-serif">
-  <h2>تم استلام طلبك</h2>
-  <p>رقم الطلب: <strong>{{ order_number }}</strong></p>
-  <p>المجموع: <strong>{{ total_amount }}</strong> SAR</p>
+{% load i18n %}
+<div dir="{{ LANGUAGE_DIR|default:'rtl' }}" style="font-family: Arial, sans-serif">
+  <h2>{% trans "We received your order." %}</h2>
+  <p>{% trans "Order number:" %} <strong>{{ order_number }}</strong></p>
+  <p>{% trans "Total:" %} <strong>{{ total_amount }}</strong> SAR</p>
 </div>
-

@@ -1,0 +1,53 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Settlements" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Settlements" %}</h1>
+    <div class="text-muted small">{% trans "Track payable vs paid amounts." %}</div>
+  </div>
+  <a class="btn btn-outline-primary" href="{% url 'web:dashboard_balance' %}">{% trans "View balance" %}</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>{% trans "Period" %}</th>
+          <th class="text-nowrap">{% trans "Gross" %}</th>
+          <th class="text-nowrap">{% trans "Fees" %}</th>
+          <th class="text-nowrap">{% trans "Net" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for settlement in settlements %}
+          <tr>
+            <td>{{ settlement.period_start }} - {{ settlement.period_end }}</td>
+            <td class="text-nowrap">{{ settlement.gross_amount }}</td>
+            <td class="text-nowrap">{{ settlement.fees_amount }}</td>
+            <td class="text-nowrap">{{ settlement.net_amount }}</td>
+            <td>
+              <span class="badge text-bg-light">{{ settlement.status }}</span>
+            </td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'web:dashboard_settlement_detail' settlement.id %}">
+                {% trans "Details" %}
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">{% trans "No settlements yet." %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

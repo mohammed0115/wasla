@@ -20,9 +20,23 @@ from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 
+from . import error_views, i18n_views
+from apps.observability.views.health import healthz, readyz
+from apps.observability.views.metrics import metrics
+
+handler403 = "wasla_sore.error_views.handle_403"
+handler404 = "wasla_sore.error_views.handle_404"
+handler500 = "wasla_sore.error_views.handle_500"
+
 urlpatterns = [
+    path("healthz", healthz, name="healthz"),
+    path("readyz", readyz, name="readyz"),
+    path("metrics", metrics, name="metrics"),
+    path("", include("apps.system.interfaces.web.urls")),
+    path("admin/settlements/", include("apps.settlements.interfaces.web.admin_urls")),
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
+    path("lang/<str:code>/", i18n_views.switch_language, name="lang-switch"),
     path("api/", include("wasla_sore.api_urls")),
     path("auth/", include(("apps.accounts.interfaces.web.auth_urls", "auth"), namespace="auth")),
     path("accounts/", include("apps.accounts.interfaces.web.urls")),

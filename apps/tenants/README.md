@@ -10,8 +10,9 @@
 **AR/EN:** `apps/tenants/middleware.py::TenantMiddleware` resolves a tenant using:
 1) Headers: `X-Tenant` / `X-Tenant-Id`  
 2) Session: `store_id`  
-3) Domain/Subdomain  
-4) (In `DEBUG=1`) querystring `?store_id=<id>`
+3) Custom domain (`StoreDomain` ACTIVE) or legacy `Tenant.domain`  
+4) Subdomain under `WASSLA_BASE_DOMAIN`  
+5) (In `DEBUG=1`) querystring `?store_id=<id>`
 
 Also: `TenantLocaleMiddleware` activates tenant default language before Django `LocaleMiddleware`.
 
@@ -21,6 +22,7 @@ Also: `TenantLocaleMiddleware` activates tenant default language before Django `
 
 **AR/EN (see `apps/tenants/models.py`):**
 - `Tenant`: يمثل المتجر/الـ tenant.
+- `StoreDomain`: ربط الدومينات الخاصة (Custom Domains) مع حالة التحقق والـ SSL.
 - `TenantMembership`: عضوية المستخدم داخل المتجر (Owner/Staff…).
 - `StoreProfile`: إعدادات المتجر العامة + حالة الإعداد.
 - `StorePaymentSettings`, `StoreShippingSettings`: إعدادات الدفع والشحن لكل متجر.
@@ -50,4 +52,3 @@ Main web entrypoint: `apps/tenants/interfaces/web/views.py`.
 
 Run:
 `python manage.py test apps.tenants`
-

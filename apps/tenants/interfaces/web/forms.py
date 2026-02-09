@@ -6,7 +6,12 @@ from django import forms
 
 from apps.catalog.models import Category
 from apps.tenants.domain.errors import StoreDomainError, StoreValidationError
-from apps.tenants.domain.policies import validate_hex_color, validate_store_name, validate_tenant_slug
+from apps.tenants.domain.policies import (
+    validate_domain_format,
+    validate_hex_color,
+    validate_store_name,
+    validate_tenant_slug,
+)
 from apps.tenants.domain.setup_policies import (
     PAYMENT_MODE_CHOICES,
     PAYMENT_MODE_DUMMY,
@@ -87,6 +92,22 @@ class StoreSettingsForm(forms.Form):
     def clean_secondary_color(self) -> str:
         try:
             return validate_hex_color(self.cleaned_data.get("secondary_color", ""))
+        except StoreDomainError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+
+
+class CustomDomainForm(forms.Form):
+    domain = forms.CharField(max_length=255, label="Custom domain")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["domain"].widget.attrs.setdefault("class", "form-control")
+        self.fields["domain"].widget.attrs.setdefault("placeholder", "mystore.com")
+
+    def clean_domain(self) -> str:
+        raw = self.cleaned_data.get("domain", "")
+        try:
+            return validate_domain_format(raw)
         except StoreDomainError as exc:
             raise forms.ValidationError(str(exc)) from exc
 

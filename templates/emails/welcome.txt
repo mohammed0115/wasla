@@ -1,3 +1,7 @@
-مرحباً{% if full_name %} {{ full_name }}{% endif %}
-شكراً لتسجيلك في متجر وصلة.
-
+{% load i18n %}
+{% if full_name %}
+{% blocktrans with name=full_name %}Welcome {{ name }}{% endblocktrans %}
+{% else %}
+{% trans "Welcome" %}
+{% endif %}
+{% trans "Thanks for joining Wasla." %}

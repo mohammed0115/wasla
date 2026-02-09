@@ -1,0 +1,30 @@
+{% extends "storefront/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Order confirmation" %} | Wasla{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-body text-center">
+        <h1 class="h4 mb-2">{% trans "Thank you!" %}</h1>
+        {% if order %}
+          <p class="text-muted mb-4">{% trans "Your order has been placed successfully." %}</p>
+          <div class="mb-3">
+            <div class="text-muted small">{% trans "Order number" %}</div>
+            <div class="h5">{{ order.order_number }}</div>
+          </div>
+          <div class="mb-3">
+            <div class="text-muted small">{% trans "Total" %}</div>
+            <div class="h5">{{ order.total_amount }} {{ order.currency }}</div>
+          </div>
+        {% else %}
+          <p class="text-muted">{% trans "Order not found." %}</p>
+        {% endif %}
+        <a class="btn btn-outline-primary mt-3" href="/store/">{% trans "Back to store" %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

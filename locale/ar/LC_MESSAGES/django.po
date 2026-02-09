@@ -4,21 +4,377 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: ar\n"
 
-msgid "Store"
-msgstr "المتجر"
+msgid "Wasla"
+msgstr "وصلة"
 
-msgid "Login"
-msgstr "تسجيل الدخول"
-
-msgid "Logout"
-msgstr "تسجيل الخروج"
-
-msgid "Sign up"
-msgstr "إنشاء حساب"
-
-msgid "Admin"
-msgstr "الإدارة"
+msgid "Language"
+msgstr "اللغة"
 
 msgid "Dashboard"
 msgstr "لوحة التحكم"
 
+msgid "Login"
+msgstr "تسجيل الدخول"
+
+msgid "Sign up"
+msgstr "إنشاء حساب"
+
+msgid "Logout"
+msgstr "تسجيل الخروج"
+
+msgid "Store"
+msgstr "المتجر"
+
+msgid "No store"
+msgstr "لا يوجد متجر"
+
+msgid "Admin"
+msgstr "الإدارة"
+
+msgid "All rights reserved."
+msgstr "جميع الحقوق محفوظة."
+
+msgid "Products"
+msgstr "المنتجات"
+
+msgid "Orders"
+msgstr "الطلبات"
+
+msgid "Shipping"
+msgstr "الشحن"
+
+msgid "Wallet"
+msgstr "المحفظة"
+
+msgid "Reviews"
+msgstr "المراجعات"
+
+msgid "App Store"
+msgstr "متجر التطبيقات"
+
+msgid "Subscriptions"
+msgstr "الاشتراكات"
+
+msgid "Settings"
+msgstr "الإعدادات"
+
+msgid "Invalid login details."
+msgstr "بيانات الدخول غير صحيحة."
+
+msgid "Username"
+msgstr "اسم المستخدم"
+
+msgid "Password"
+msgstr "كلمة المرور"
+
+msgid "Create account"
+msgstr "إنشاء حساب"
+
+msgid "Confirm password"
+msgstr "تأكيد كلمة المرور"
+
+msgid "Already have an account?"
+msgstr "لديك حساب؟"
+
+msgid "OTP Login"
+msgstr "تسجيل الدخول برمز تحقق"
+
+msgid "Login with verification code"
+msgstr "تسجيل الدخول برمز التحقق"
+
+msgid "Send code"
+msgstr "إرسال الرمز"
+
+msgid "Verify login"
+msgstr "تأكيد الدخول"
+
+msgid "Verify"
+msgstr "تحقق"
+
+msgid "Back to password login"
+msgstr "العودة لتسجيل الدخول بكلمة المرور"
+
+msgid "Email verification"
+msgstr "تأكيد البريد الإلكتروني"
+
+msgid "Verification code (OTP)"
+msgstr "رمز التحقق (OTP)"
+
+msgid "Example: 123456"
+msgstr "مثال: 123456"
+
+msgid "The code is valid for 10 minutes."
+msgstr "الرمز صالح لمدة 10 دقائق."
+
+msgid "Confirm"
+msgstr "تأكيد"
+
+msgid "Resend code"
+msgstr "إعادة إرسال الرمز"
+
+msgid "Complete profile"
+msgstr "إكمال الملف الشخصي"
+
+msgid "Complete your account details"
+msgstr "أكمل بيانات الحساب"
+
+msgid "Continue"
+msgstr "متابعة"
+
+msgid "Start registration"
+msgstr "ابدأ التسجيل"
+
+msgid "Start with phone or email"
+msgstr "ابدأ برقم الجوال أو البريد الإلكتروني"
+
+msgid "Login with password"
+msgstr "تسجيل الدخول بكلمة المرور"
+
+msgid "Verify code"
+msgstr "تحقق من الرمز"
+
+msgid "We sent the code to:"
+msgstr "تم إرسال الرمز إلى:"
+
+msgid "Account"
+msgstr "الحساب"
+
+msgid "Quick login with verification code"
+msgstr "دخول سريع برمز تحقق"
+
+msgid "Continue with"
+msgstr "أو المتابعة عبر"
+
+msgid "Google (Phase 2)"
+msgstr "جوجل (المرحلة 2)"
+
+msgid "Apple (Phase 2)"
+msgstr "آبل (المرحلة 2)"
+
+msgid "Choose country"
+msgstr "اختيار الدولة"
+
+msgid "Choose your country"
+msgstr "اختر دولتك"
+
+msgid "You need to pick a country to continue."
+msgstr "لا يمكنك المتابعة بدون اختيار الدولة."
+
+msgid "Step 1 of 3"
+msgstr "الخطوة 1 من 3"
+
+msgid "Business type"
+msgstr "نوع النشاط"
+
+msgid "Choose your business type"
+msgstr "اختر نوع النشاط"
+
+msgid "Pick at least %(min)s and at most %(max)s."
+msgstr "اختر على الأقل %(min)s وبحد أقصى %(max)s."
+
+msgid "Back"
+msgstr "رجوع"
+
+msgid "Step 2 of 3"
+msgstr "الخطوة 2 من 3"
+
+msgid "Create store"
+msgstr "إنشاء المتجر"
+
+msgid "Store name"
+msgstr "اسم المتجر"
+
+msgid "Example: Wasla store"
+msgstr "مثال: متجر وصلة"
+
+msgid "Slug"
+msgstr "Slug"
+
+msgid "Lowercase letters, numbers, and dashes only."
+msgstr "أحرف صغيرة وأرقام وشرطات فقط."
+
+msgid "Wasla | Home"
+msgstr "وصلة | الرئيسية"
+
+msgid "Access denied"
+msgstr "غير مصرح"
+
+msgid "You do not have permission to access this page."
+msgstr "ليست لديك صلاحية للوصول إلى هذه الصفحة."
+
+msgid "Back to home"
+msgstr "العودة للرئيسية"
+
+msgid "Page not found"
+msgstr "الصفحة غير موجودة"
+
+msgid "The page you are looking for could not be found."
+msgstr "الصفحة التي تبحث عنها غير موجودة."
+
+msgid "Server error"
+msgstr "خطأ في الخادم"
+
+msgid "Something went wrong. Please try again later."
+msgstr "حدث خطأ ما. حاول مرة أخرى لاحقًا."
+
+msgid "Action"
+msgstr "إجراء"
+
+msgid "No data available."
+msgstr "لا توجد بيانات متاحة."
+
+msgid "Section title"
+msgstr "عنوان القسم"
+
+msgid "Verification code"
+msgstr "رمز التحقق"
+
+msgid "Your code is:"
+msgstr "رمزك هو:"
+
+msgid "Your code is: %(code)s"
+msgstr "رمزك هو: %(code)s"
+
+msgid "It expires in %(minutes)s minutes."
+msgstr "سينتهي خلال %(minutes)s دقائق."
+
+msgid "Welcome to Wasla"
+msgstr "مرحبًا بك في وصلة"
+
+msgid "Welcome"
+msgstr "مرحبًا"
+
+msgid "Thanks for joining Wasla."
+msgstr "شكرًا لانضمامك إلى وصلة."
+
+msgid "Order confirmation %(order_number)s"
+msgstr "تأكيد الطلب %(order_number)s"
+
+msgid "We received your order."
+msgstr "تم استلام طلبك."
+
+msgid "Order number:"
+msgstr "رقم الطلب:"
+
+msgid "Order number: %(order_number)s"
+msgstr "رقم الطلب: %(order_number)s"
+
+msgid "Total:"
+msgstr "الإجمالي:"
+
+msgid "Total: %(total)s SAR"
+msgstr "الإجمالي: %(total)s SAR"
+
+msgid "This field is required."
+msgstr "هذا الحقل مطلوب."
+
+msgid "Enter a valid email address."
+msgstr "أدخل بريدًا إلكترونيًا صالحًا."
+
+msgid "Ensure this value has at least %(limit_value)d characters (it has %(show_value)d)."
+msgstr "تأكد أن القيمة تحتوي على الأقل %(limit_value)d حرفًا (حاليًا %(show_value)d)."
+
+msgid "Total"
+msgstr "الإجمالي"
+
+msgid "View details"
+msgstr "عرض التفاصيل"
+
+msgid "Your cart"
+msgstr "سلة المشتريات"
+
+msgid "Continue shopping"
+msgstr "متابعة التسوق"
+
+msgid "Product"
+msgstr "المنتج"
+
+msgid "Quantity"
+msgstr "الكمية"
+
+msgid "Unit price"
+msgstr "سعر الوحدة"
+
+msgid "Update"
+msgstr "تحديث"
+
+msgid "Remove"
+msgstr "إزالة"
+
+msgid "Subtotal"
+msgstr "الإجمالي قبل الشحن"
+
+msgid "Proceed to checkout"
+msgstr "إتمام الشراء"
+
+msgid "Your cart is empty."
+msgstr "سلة المشتريات فارغة."
+
+msgid "Add to cart"
+msgstr "أضف إلى السلة"
+
+msgid "View cart"
+msgstr "عرض السلة"
+
+msgid "Checkout - Address"
+msgstr "الدفع - العنوان"
+
+msgid "Shipping address"
+msgstr "عنوان الشحن"
+
+msgid "Full name"
+msgstr "الاسم الكامل"
+
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+msgid "Phone"
+msgstr "رقم الهاتف"
+
+msgid "Address line"
+msgstr "العنوان"
+
+msgid "City"
+msgstr "المدينة"
+
+msgid "Country"
+msgstr "الدولة"
+
+msgid "Continue to shipping"
+msgstr "متابعة إلى الشحن"
+
+msgid "Checkout - Shipping"
+msgstr "الدفع - الشحن"
+
+msgid "Shipping method"
+msgstr "طريقة الشحن"
+
+msgid "Continue to payment"
+msgstr "متابعة إلى الدفع"
+
+msgid "Checkout - Payment"
+msgstr "الدفع - طريقة الدفع"
+
+msgid "Payment method"
+msgstr "طريقة الدفع"
+
+msgid "Pay now"
+msgstr "ادفع الآن"
+
+msgid "Order confirmation"
+msgstr "تأكيد الطلب"
+
+msgid "Thank you!"
+msgstr "شكرًا لك!"
+
+msgid "Your order has been placed successfully."
+msgstr "تم إنشاء طلبك بنجاح."
+
+msgid "Order number"
+msgstr "رقم الطلب"
+
+msgid "Order not found."
+msgstr "الطلب غير موجود."
+
+msgid "Back to store"
+msgstr "العودة للمتجر"

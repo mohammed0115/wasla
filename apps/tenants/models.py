@@ -44,6 +44,50 @@ class Tenant(models.Model):
         ]
 
 
+class StoreDomain(models.Model):
+    STATUS_PENDING_VERIFICATION = "PENDING_VERIFICATION"
+    STATUS_VERIFIED = "VERIFIED"
+    STATUS_SSL_PENDING = "SSL_PENDING"
+    STATUS_SSL_ACTIVE = "SSL_ACTIVE"
+    STATUS_PENDING = "PENDING"
+    STATUS_VERIFYING = "VERIFYING"
+    STATUS_ACTIVE = "ACTIVE"
+    STATUS_FAILED = "FAILED"
+    STATUS_DISABLED = "DISABLED"
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING_VERIFICATION, "Pending Verification"),
+        (STATUS_VERIFIED, "Verified"),
+        (STATUS_SSL_PENDING, "SSL Pending"),
+        (STATUS_SSL_ACTIVE, "SSL Active"),
+        (STATUS_PENDING, "Pending"),
+        (STATUS_VERIFYING, "Verifying"),
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_FAILED, "Failed"),
+        (STATUS_DISABLED, "Disabled"),
+    ]
+
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="custom_domains")
+    domain = models.CharField(max_length=255, unique=True)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_PENDING_VERIFICATION)
+    verification_token = models.CharField(max_length=128, blank=True, default="")
+    verified_at = models.DateTimeField(null=True, blank=True)
+    ssl_cert_path = models.TextField(blank=True, default="")
+    ssl_key_path = models.TextField(blank=True, default="")
+    last_check_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["domain"], name="tenants_storedomain_domain_idx"),
+            models.Index(fields=["tenant", "status"], name="tenants_storedomain_tenant_status_idx"),
+            models.Index(fields=["status", "last_check_at"], name="tenants_storedomain_status_check_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.domain} ({self.status})"
+
+
 class StoreProfile(models.Model):
     tenant = models.OneToOneField(Tenant, on_delete=models.CASCADE, related_name="store_profile")
     owner = models.OneToOneField(

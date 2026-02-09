@@ -1,0 +1,69 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Bulk Import" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Bulk product import" %}</h1>
+    <div class="text-muted small">{% trans "Upload CSV and optional images to create products." %}</div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form method="post" action="{% url 'web:dashboard_import_start' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">{% trans "CSV file" %}</label>
+        {{ form.csv_file }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">{% trans "Images (optional)" %}</label>
+        {{ form.images }}
+        <div class="form-text">{% trans "Use image_file column to map filenames." %}</div>
+      </div>
+      <button class="btn btn-primary" type="submit">{% trans "Start import" %}</button>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold">{% trans "Recent imports" %}</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>{% trans "Job" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Total rows" %}</th>
+          <th>{% trans "Success" %}</th>
+          <th>{% trans "Failed" %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+          <tr>
+            <td>#{{ job.id }}</td>
+            <td>{{ job.status }}</td>
+            <td>{{ job.total_rows }}</td>
+            <td>{{ job.success_rows }}</td>
+            <td>{{ job.failed_rows }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'web:dashboard_import_detail' job.id %}">
+                {% trans "View" %}
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">{% trans "No import jobs yet." %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

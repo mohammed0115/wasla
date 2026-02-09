@@ -1,0 +1,75 @@
+{% extends "storefront/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Your cart" %} | Wasla{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h4 mb-0">{% trans "Your cart" %}</h1>
+  <a class="btn btn-outline-secondary" href="/store/">{% trans "Continue shopping" %}</a>
+</div>
+
+{% if cart.items %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>{% trans "Product" %}</th>
+              <th>{% trans "Quantity" %}</th>
+              <th>{% trans "Unit price" %}</th>
+              <th>{% trans "Total" %}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cart.items %}
+              <tr>
+                <td>{{ item.name }}</td>
+                <td style="max-width: 140px;">
+                  <form method="post" action="{% url 'web:cart_update' %}" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="item_id" value="{{ item.id }}" />
+                    <input class="form-control form-control-sm" type="number" name="quantity" min="1" value="{{ item.quantity }}" />
+                    <button class="btn btn-sm btn-outline-primary" type="submit">{% trans "Update" %}</button>
+                  </form>
+                </td>
+                <td>{{ item.unit_price }}</td>
+                <td>{{ item.line_total }}</td>
+                <td>
+                  <form method="post" action="{% url 'web:cart_remove' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="item_id" value="{{ item.id }}" />
+                    <button class="btn btn-sm btn-outline-danger" type="submit">{% trans "Remove" %}</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end">
+    <div class="card" style="min-width: 280px;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+          <span>{% trans "Subtotal" %}</span>
+          <strong>{{ cart.subtotal }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-3">
+          <span>{% trans "Total" %}</span>
+          <strong>{{ cart.total }}</strong>
+        </div>
+        <a class="btn btn-primary w-100" href="{% url 'web:checkout_address' %}">{% trans "Proceed to checkout" %}</a>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="text-center text-muted py-5">
+    {% trans "Your cart is empty." %}
+  </div>
+{% endif %}
+{% endblock %}

@@ -53,20 +53,24 @@ Per-module documentation lives inside each module: `apps/<module>/README.md`.
 
 **AR:**
 - `apps/tenants/models.py` يحتوي `Tenant` (المتجر/الـ tenant) وعضويات/إعدادات المتجر.
+- ربط الدومينات الخاصة يتم عبر `StoreDomain` + تحقق DNS/HTTP + إصدار SSL.
 - `apps/tenants/middleware.py::TenantMiddleware` يحدد `request.tenant` باستخدام:
   1) Headers (`X-Tenant`, `X-Tenant-Id`)
   2) Session (`store_id`)
-  3) Domain/subdomain
-  4) (في DEBUG) querystring مثل `?store_id=1`
+  3) Custom domain (StoreDomain) أو legacy `Tenant.domain`
+  4) Subdomain under `WASSLA_BASE_DOMAIN`
+  5) (في DEBUG) querystring مثل `?store_id=1`
 - قاعدة مهمة: أي بيانات تخص متجرًا يجب أن تكون معزولة (Tenant Isolation) عبر `tenant_id` أو `store_id`.
 
 **EN:**
 - `apps/tenants/models.py` defines `Tenant` (store/tenant) and store settings/memberships.
+- Custom domains are mapped via `StoreDomain` with DNS/HTTP verification + SSL issuance.
 - `apps/tenants/middleware.py::TenantMiddleware` resolves `request.tenant` using:
   1) Headers (`X-Tenant`, `X-Tenant-Id`)
   2) Session (`store_id`)
-  3) Domain/subdomain
-  4) (In DEBUG) querystring `?store_id=1`
+  3) Custom domain (StoreDomain) or legacy `Tenant.domain`
+  4) Subdomain under `WASSLA_BASE_DOMAIN`
+  5) (In DEBUG) querystring `?store_id=1`
 - Rule: store-owned data must be tenant-isolated via `tenant_id` / `store_id`.
 
 ---
@@ -114,4 +118,3 @@ Per-module documentation lives inside each module: `apps/<module>/README.md`.
 - env files in `/etc/<project>/`
 
 See: `Docs/STAGING_RUNBOOK.md` and `deployment/README.md`.
-

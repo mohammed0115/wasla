@@ -88,6 +88,30 @@ Do **not** run `deployment/06_ssl_setup.sh` (it will fail without a real domain)
 - Gunicorn service: `gunicorn-<project>.service`
 - Nginx logs: `/var/log/nginx/<project>.*.log`
 
+## Custom domains (multi-tenant) | الدومينات الخاصة
+
+**AR:**
+- لتفعيل الربط الديناميكي للدومينات، اضبط المتغيرات التالية داخل `/etc/<project>/django.env`:
+  - `WASSLA_BASE_DOMAIN`
+  - `CUSTOM_DOMAIN_SERVER_IP`
+  - `CUSTOM_DOMAIN_SSL_ENABLED=1`
+  - `CUSTOM_DOMAIN_CERTBOT_WEBROOT=/var/www/certbot`
+  - `CUSTOM_DOMAIN_NGINX_ENABLED=1`
+  - `CUSTOM_DOMAIN_NGINX_DOMAINS_DIR=/etc/nginx/wassla/domains`
+- تأكد من أن Nginx يحتوي على include لهذه المسارات:
+  - `/etc/nginx/wassla/domains/*.conf`
+
+**EN:**
+- Enable dynamic custom domains by setting in `/etc/<project>/django.env`:
+  - `WASSLA_BASE_DOMAIN`
+  - `CUSTOM_DOMAIN_SERVER_IP`
+  - `CUSTOM_DOMAIN_SSL_ENABLED=1`
+  - `CUSTOM_DOMAIN_CERTBOT_WEBROOT=/var/www/certbot`
+  - `CUSTOM_DOMAIN_NGINX_ENABLED=1`
+  - `CUSTOM_DOMAIN_NGINX_DOMAINS_DIR=/etc/nginx/wassla/domains`
+- Ensure Nginx includes:
+  - `/etc/nginx/wassla/domains/*.conf`
+
 ## Useful commands
 
 **AR/EN:**

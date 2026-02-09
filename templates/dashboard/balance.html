@@ -1,0 +1,33 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Balance" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Balance" %}</h1>
+    <div class="text-muted small">{% trans "Pending vs available funds for your store." %}</div>
+  </div>
+  <a class="btn btn-outline-primary" href="{% url 'web:dashboard_settlements' %}">{% trans "View settlements" %}</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{% trans "Pending balance" %}</div>
+        <div class="h4 mb-0">{{ balance.pending_balance }} {{ balance.currency }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{% trans "Available balance" %}</div>
+        <div class="h4 mb-0">{{ balance.available_balance }} {{ balance.currency }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

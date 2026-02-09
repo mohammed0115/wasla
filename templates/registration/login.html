@@ -1,35 +1,37 @@
 {% extends "layouts/auth_base.html" %}
-{% block title %}تسجيل الدخول | Waslah{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Login" %} | Wasla{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-12 col-md-6 col-xl-4">
     <div class="card">
       <div class="card-body">
-        <h1 class="h4 mb-3">تسجيل الدخول</h1>
+        <h1 class="h4 mb-3">{% trans "Login" %}</h1>
 
         {% if form.errors %}
-          <div class="alert alert-danger">بيانات الدخول غير صحيحة.</div>
+          <div class="alert alert-danger">{% trans "Invalid login details." %}</div>
         {% endif %}
 
         <form method="post" action="{% url 'login' %}">
           {% csrf_token %}
 
           <div class="mb-3">
-            <label class="form-label">Username</label>
+            <label class="form-label">{% trans "Username" %}</label>
             <input class="form-control" type="text" name="username" autocomplete="username" required />
           </div>
           <div class="mb-3">
-            <label class="form-label">Password</label>
+            <label class="form-label">{% trans "Password" %}</label>
             <input class="form-control" type="password" name="password" autocomplete="current-password" required />
           </div>
 
           <input type="hidden" name="next" value="{{ next }}" />
-          <button class="btn btn-primary w-100" type="submit">دخول</button>
+          <button class="btn btn-primary w-100" type="submit">{% trans "Login" %}</button>
         </form>
 
         <div class="text-center small mt-3">
-          <a href="{% url 'signup' %}">Create account</a>
+          <a href="{% url 'signup' %}">{% trans "Create account" %}</a>
         </div>
       </div>
     </div>

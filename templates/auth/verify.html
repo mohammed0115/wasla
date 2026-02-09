@@ -1,14 +1,16 @@
 {% extends "layouts/auth_base.html" %}
-{% block title %}تحقق من الرمز | Wasla{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Verify code" %} | Wasla{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-12 col-md-8 col-lg-6 col-xl-5">
     <div class="card shadow-sm">
       <div class="card-body p-4">
-        <h5 class="mb-3">تحقق من الرمز</h5>
+        <h5 class="mb-3">{% trans "Verify code" %}</h5>
         {% if identifier %}
-          <div class="text-muted small mb-3">تم إرسال الرمز إلى: {{ identifier }}</div>
+          <div class="text-muted small mb-3">{% trans "We sent the code to:" %} {{ identifier }}</div>
         {% endif %}
         <form method="post" action="{% url 'auth:verify' %}">
           {% csrf_token %}
@@ -17,10 +19,10 @@
             {{ form.code }}
             {% if form.code.errors %}<div class="text-danger small mt-1">{{ form.code.errors|striptags }}</div>{% endif %}
           </div>
-          <button class="btn btn-primary w-100" type="submit">تحقق</button>
+          <button class="btn btn-primary w-100" type="submit">{% trans "Verify" %}</button>
         </form>
         <div class="text-center mt-3">
-          <a href="{% url 'auth:start' %}">إعادة إرسال الرمز</a>
+          <a href="{% url 'auth:start' %}">{% trans "Resend code" %}</a>
         </div>
       </div>
     </div>

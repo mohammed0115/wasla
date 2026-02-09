@@ -1,0 +1,42 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Exports" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Exports" %}</h1>
+    <div class="text-muted small">{% trans "Download order data and invoices." %}</div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="list-group list-group-flush">
+    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="{% url 'web:dashboard_exports_orders_csv' %}">
+      <span>{% trans "Orders CSV" %}</span>
+      <span class="text-muted small">.csv</span>
+    </a>
+    <div class="list-group-item">
+      <label class="form-label">{% trans "Invoice PDF (enter order ID)" %}</label>
+      <div class="input-group">
+        <input class="form-control" type="number" id="invoiceOrderId" value="1" min="1" />
+        <button class="btn btn-outline-primary" type="button" id="invoiceDownloadBtn">{% trans "Download" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const btn = document.getElementById("invoiceDownloadBtn");
+  const input = document.getElementById("invoiceOrderId");
+  if (btn && input) {
+    btn.addEventListener("click", () => {
+      const id = parseInt(input.value || "0", 10);
+      if (id > 0) {
+        window.location.href = "{% url 'web:dashboard_exports_invoice' order_id=1 %}".replace("/1.pdf", `/${id}.pdf`);
+      }
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Visual Search" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Visual search" %}</h1>
+    <div class="text-muted small">{% trans "Upload an image to find similar products." %}</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'web:dashboard_ai_tools' %}">{% trans "Back" %}</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">{% trans "Image" %}</label>
+        <input type="file" class="form-control" name="image" accept="image/*" required />
+        <div class="form-text">{% trans "JPG, PNG, or WEBP. Max 5MB." %}</div>
+      </div>
+      <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
+    </form>
+  </div>
+</div>
+
+{% if result %}
+  <div class="card shadow-sm">
+    <div class="card-header bg-white fw-bold">{% trans "Results" %}</div>
+    <div class="card-body">
+      {% if result.results %}
+        <div class="list-group">
+          {% for item in result.results %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <a class="fw-semibold text-decoration-none" href="{% url 'web:product_edit' item.product_id %}">
+                  {{ item.name }}
+                </a>
+                <div class="text-muted small">#{% trans "Product" %} {{ item.product_id }}</div>
+              </div>
+              <span class="badge text-bg-light">{{ item.score }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-muted">{% trans "No similar products found." %}</div>
+      {% endif %}
+
+      {% if result.fallback_reason %}
+        <div class="text-muted small mt-3">{% trans "Fallback used" %}</div>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

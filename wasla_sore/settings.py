@@ -43,19 +43,68 @@ DEBUG = _env_bool("DJANGO_DEBUG", "1")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower() or "development"
 TEST_OTP_CODE = os.getenv("TEST_OTP_CODE", "12345").strip() or "12345"
 
+WASSLA_BASE_DOMAIN = os.getenv("WASSLA_BASE_DOMAIN", "w-sala.com").strip().lower() or "w-sala.com"
+
 ALLOWED_HOSTS = _env_list(
     "DJANGO_ALLOWED_HOSTS",
     default=[
         "localhost",
         "127.0.0.1",
         "[::1]",
-        "w-sala.com",
-        "www.w-sala.com",
+        WASSLA_BASE_DOMAIN,
+        f"www.{WASSLA_BASE_DOMAIN}",
         "76.13.143.149",
     ],
 )
 
 CSRF_TRUSTED_ORIGINS = _env_list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
+
+# Custom domains (multi-tenant mapping)
+CUSTOM_DOMAIN_SERVER_IP = os.getenv("CUSTOM_DOMAIN_SERVER_IP", "").strip()
+CUSTOM_DOMAIN_CNAME_TARGET = os.getenv("CUSTOM_DOMAIN_CNAME_TARGET", "").strip()
+CUSTOM_DOMAIN_BLOCKED_DOMAINS = _env_list("CUSTOM_DOMAIN_BLOCKED_DOMAINS", default=[WASSLA_BASE_DOMAIN])
+CUSTOM_DOMAIN_VERIFICATION_PATH_PREFIX = os.getenv(
+    "CUSTOM_DOMAIN_VERIFICATION_PATH_PREFIX",
+    "/.well-known/wassla-domain-verification",
+).strip()
+CUSTOM_DOMAIN_HTTP_TIMEOUT_SECONDS = int(os.getenv("CUSTOM_DOMAIN_HTTP_TIMEOUT_SECONDS", "5") or "5")
+CUSTOM_DOMAIN_VERIFY_MIN_INTERVAL_SECONDS = int(
+    os.getenv("CUSTOM_DOMAIN_VERIFY_MIN_INTERVAL_SECONDS", "30") or "30"
+)
+CUSTOM_DOMAIN_DNS_CACHE_SECONDS = int(os.getenv("CUSTOM_DOMAIN_DNS_CACHE_SECONDS", "300") or "300")
+CUSTOM_DOMAIN_CACHE_SECONDS = int(os.getenv("CUSTOM_DOMAIN_CACHE_SECONDS", "300") or "300")
+
+# SSL/Certbot
+CUSTOM_DOMAIN_SSL_ENABLED = _env_bool("CUSTOM_DOMAIN_SSL_ENABLED", "0")
+CUSTOM_DOMAIN_CERTBOT_CMD = os.getenv("CUSTOM_DOMAIN_CERTBOT_CMD", "certbot").strip() or "certbot"
+CUSTOM_DOMAIN_CERTBOT_EMAIL = os.getenv("CUSTOM_DOMAIN_CERTBOT_EMAIL", "").strip()
+CUSTOM_DOMAIN_CERTBOT_MODE = os.getenv("CUSTOM_DOMAIN_CERTBOT_MODE", "http-01").strip() or "http-01"
+CUSTOM_DOMAIN_CERTBOT_WEBROOT = os.getenv(
+    "CUSTOM_DOMAIN_CERTBOT_WEBROOT",
+    "/var/www/certbot",
+).strip()
+CUSTOM_DOMAIN_CERTBOT_DNS_AUTH_HOOK = os.getenv("CUSTOM_DOMAIN_CERTBOT_DNS_AUTH_HOOK", "").strip()
+CUSTOM_DOMAIN_CERTBOT_DNS_CLEANUP_HOOK = os.getenv("CUSTOM_DOMAIN_CERTBOT_DNS_CLEANUP_HOOK", "").strip()
+CUSTOM_DOMAIN_CERTS_DIR = os.getenv("CUSTOM_DOMAIN_CERTS_DIR", "/etc/letsencrypt/live").strip()
+
+# Nginx dynamic config
+CUSTOM_DOMAIN_NGINX_ENABLED = _env_bool("CUSTOM_DOMAIN_NGINX_ENABLED", "0")
+CUSTOM_DOMAIN_NGINX_DOMAINS_DIR = os.getenv(
+    "CUSTOM_DOMAIN_NGINX_DOMAINS_DIR",
+    "/etc/nginx/conf.d/wasla_domains",
+).strip()
+CUSTOM_DOMAIN_NGINX_UPSTREAM = os.getenv(
+    "CUSTOM_DOMAIN_NGINX_UPSTREAM",
+    "http://127.0.0.1:8000",
+).strip()
+CUSTOM_DOMAIN_NGINX_TEST_CMD = os.getenv("CUSTOM_DOMAIN_NGINX_TEST_CMD", "nginx -t").strip()
+CUSTOM_DOMAIN_NGINX_RELOAD_CMD = os.getenv("CUSTOM_DOMAIN_NGINX_RELOAD_CMD", "systemctl reload nginx").strip()
+CUSTOM_DOMAIN_FORCE_HTTPS = _env_bool("CUSTOM_DOMAIN_FORCE_HTTPS", "0")
+CUSTOM_DOMAIN_NGINX_RELOAD_IN_REQUEST = _env_bool("CUSTOM_DOMAIN_NGINX_RELOAD_IN_REQUEST", "0")
+DOMAIN_PROVISIONING_MODE = os.getenv("DOMAIN_PROVISIONING_MODE", "manual").strip().lower() or "manual"
+
+NGINX_TEMPLATE_DIR = os.getenv("NGINX_TEMPLATE_DIR", "infrastructure/nginx").strip() or "infrastructure/nginx"
+NGINX_DOMAIN_TEMPLATE = os.getenv("NGINX_DOMAIN_TEMPLATE", "domain.conf.j2").strip() or "domain.conf.j2"
 
 
 # Application definition
@@ -75,19 +124,35 @@ INSTALLED_APPS = [
     "apps.tenants.apps.TenantsConfig",
     "apps.catalog.apps.CatalogConfig",
     "apps.customers.apps.CustomerConfig",
+    "apps.cart.apps.CartConfig",
+    "apps.checkout.apps.CheckoutConfig",
     "apps.orders.apps.OrderConfig",
     "apps.payments.apps.PaymentConfig",
+    "apps.imports.apps.ImportsConfig",
+    "apps.themes.apps.ThemesConfig",
+    "apps.exports.apps.ExportsConfig",
+    "apps.settlements.apps.SettlementsConfig",
+    "apps.ai.apps.AiConfig",
+    "apps.domains.apps.DomainsConfig",
+    "apps.observability.apps.ObservabilityConfig",
+    "apps.security.apps.SecurityConfig",
+    "apps.analytics.apps.AnalyticsConfig",
     "apps.plugins.apps.PluginsConfig",
     "apps.reviews.apps.ReviewsConfig",
     "apps.shipping.apps.ShippingConfig",
     "apps.subscriptions.apps.SubscriptionConfig",
     "apps.wallet.apps.WalletConfig",
     "apps.emails.apps.EmailsConfig",
+    "apps.webhooks.apps.WebhooksConfig",
+    "apps.system.apps.SystemConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "apps.observability.middleware.request_id.RequestIdMiddleware",
+    "apps.observability.middleware.timing.TimingMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "apps.security.middleware.rate_limit.RateLimitMiddleware",
     "apps.tenants.middleware.TenantMiddleware",
     "apps.tenants.middleware.TenantLocaleMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -97,6 +162,7 @@ MIDDLEWARE = [
     "apps.accounts.middleware.OnboardingRedirectMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.security.middleware.headers.SecurityHeadersMiddleware",
 ]
 
 ROOT_URLCONF = "wasla_sore.urls"
@@ -111,6 +177,8 @@ TEMPLATES = [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.template.context_processors.i18n",
+                "wasla_sore.context_processors.language_meta",
+                "apps.themes.interfaces.web.context_processors.branding_meta",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -165,6 +233,8 @@ TIME_ZONE = "UTC"
 
 USE_I18N = True
 
+USE_L10N = True
+
 USE_TZ = True
 
 LOCALE_PATHS = [
@@ -185,6 +255,9 @@ MEDIA_ROOT = Path(os.getenv("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 
+DEBUG_PROPAGATE_EXCEPTIONS = False
+DEFAULT_EXCEPTION_REPORTER_FILTER = "django.views.debug.SafeExceptionReporterFilter"
+
 AUTHENTICATION_BACKENDS = [
     "apps.accounts.infrastructure.auth_backends.PhoneOrEmailBackend",
     "django.contrib.auth.backends.ModelBackend",
@@ -199,9 +272,14 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
         "apps.tenants.interfaces.api.permissions.HasTenantAccess",
     ),
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.ScopedRateThrottle",
+    ),
     "DEFAULT_THROTTLE_RATES": {
         "auth": "10/min",
         "onboarding": "30/min",
+        "import": "5/min",
+        "ai": "10/min",
     },
 }
 
@@ -223,6 +301,57 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = _env_bool("DJANGO_SECURE_SSL_REDIRECT", "0")
 SESSION_COOKIE_SECURE = _env_bool("DJANGO_SESSION_COOKIE_SECURE", "0")
 CSRF_COOKIE_SECURE = _env_bool("DJANGO_CSRF_COOKIE_SECURE", "0")
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+
+SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "0") or "0")
+SECURITY_CSP_ENABLED = _env_bool("SECURITY_CSP_ENABLED", "1")
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv("DATA_UPLOAD_MAX_MEMORY_SIZE", str(10 * 1024 * 1024)))
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv("FILE_UPLOAD_MAX_MEMORY_SIZE", str(10 * 1024 * 1024)))
+
+SECURITY_RATE_LIMITS = [
+    {
+        "key": "login",
+        "pattern": r"^/auth/login/|^/accounts/login/|^/api/auth/login/",
+        "methods": ["POST"],
+        "limit": 10,
+        "window": 60,
+        "message_key": "rate_limited",
+    },
+    {
+        "key": "otp",
+        "pattern": r"^/auth/otp/|^/auth/otp-login/|^/api/auth/otp/",
+        "methods": ["POST"],
+        "limit": 15,
+        "window": 60,
+        "message_key": "rate_limited",
+    },
+    {
+        "key": "ai",
+        "pattern": r"^/api/ai/|^/dashboard/ai/",
+        "methods": ["POST"],
+        "limit": 10,
+        "window": 60,
+        "message_key": "rate_limited",
+    },
+    {
+        "key": "webhook",
+        "pattern": r"^/api/webhooks/",
+        "methods": ["POST"],
+        "limit": 60,
+        "window": 60,
+        "message_key": "rate_limited",
+    },
+    {
+        "key": "events",
+        "pattern": r"^/api/events",
+        "methods": ["POST"],
+        "limit": 120,
+        "window": 60,
+        "message_key": "rate_limited",
+    },
+]
 
 # SMS (multi-gateway)
 SMS_DEFAULT_PROVIDER = os.getenv("SMS_DEFAULT_PROVIDER", "console").strip() or "console"
@@ -252,6 +381,36 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1").strip().lower() in ("1", "true",
 EMAIL_HOST_USER = (os.getenv("EMAIL_HOST_USER", "info@w-sala.com") or "info@w-sala.com").strip()
 EMAIL_HOST_PASSWORD = (os.getenv("EMAIL_HOST_PASSWORD", "YazYaz@2030") or "YazYaz@2030").strip()
 DEFAULT_FROM_EMAIL = (os.getenv("DEFAULT_FROM_EMAIL", "Wasla <info@w-sala.com>") or "").strip() or "Wasla <info@w-sala.com>"
+
+# AI providers
+AI_PROVIDER = os.getenv("AI_PROVIDER", "openai").strip().lower() or "openai"
+AI_TIMEOUT_SECONDS = int(os.getenv("AI_TIMEOUT_SECONDS", "15") or "15")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
+
+# Analytics
+ANALYTICS_HASH_SALT = os.getenv("ANALYTICS_HASH_SALT", SECRET_KEY).strip() or SECRET_KEY
+ANALYTICS_WAREHOUSE_ENABLED = _env_bool("ANALYTICS_WAREHOUSE_ENABLED", "0")
+ANALYTICS_PLATFORM_TENANT_ID = int(os.getenv("ANALYTICS_PLATFORM_TENANT_ID", "0") or "0")
+
+# Logging
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {"()": "apps.observability.logging.JSONFormatter"},
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+        }
+    },
+    "loggers": {
+        "wasla.request": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

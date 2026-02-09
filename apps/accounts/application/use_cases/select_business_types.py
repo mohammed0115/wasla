@@ -12,6 +12,7 @@ from apps.accounts.application.use_cases.ensure_onboarding_step import (
     EnsureOnboardingStepUseCase,
 )
 from apps.accounts.services.audit_service import AccountAuditService
+from apps.analytics.application.telemetry import TelemetryService, actor_from_user
 
 
 @dataclass(frozen=True)
@@ -52,6 +53,12 @@ class SelectBusinessTypesUseCase:
             ip_address=cmd.ip_address,
             user_agent=cmd.user_agent,
             metadata={"business_types": business_types},
+        )
+        TelemetryService.track(
+            event_name="onboarding.step_completed",
+            tenant_ctx=None,
+            actor_ctx=actor_from_user(user=cmd.user, actor_type="MERCHANT"),
+            properties={"step": "business_types"},
         )
 
         return SelectBusinessTypesResult(business_types=business_types)

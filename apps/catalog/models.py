@@ -37,6 +37,8 @@ class Product(models.Model):
     sku = models.CharField(max_length=64)
     name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=12, decimal_places=2)
+    description_ar = models.TextField(blank=True, default="")
+    description_en = models.TextField(blank=True, default="")
     image = models.ImageField(upload_to=product_image_upload_to, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     categories = models.ManyToManyField(Category, related_name="products", blank=True)

@@ -1,4 +1,4 @@
-رمز التحقق (OTP)
-رمزك هو: {{ code }}
-سينتهي خلال {{ expires_minutes }} دقائق.
-
+{% load i18n %}
+{% trans "Verification code (OTP)" %}
+{% blocktrans with code=code %}Your code is: {{ code }}{% endblocktrans %}
+{% blocktrans with minutes=expires_minutes %}It expires in {{ minutes }} minutes.{% endblocktrans %}

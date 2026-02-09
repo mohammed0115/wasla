@@ -1,0 +1,39 @@
+{% extends "storefront/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ product.name }} | Wasla{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 320px; object-fit: cover;" />
+      {% endif %}
+      <div class="card-body">
+        <h1 class="h4">{{ product.name }}</h1>
+        <div class="text-muted small">{{ product.sku }}</div>
+        <div class="mt-3 h5">{{ product.price }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" action="{% url 'web:cart_add' %}">
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ product.id }}" />
+          <div class="mb-3">
+            <label class="form-label">{% trans "Quantity" %}</label>
+            <input class="form-control" type="number" name="quantity" min="1" value="1" />
+          </div>
+          <button class="btn btn-primary w-100" type="submit">{% trans "Add to cart" %}</button>
+        </form>
+        <div class="text-center mt-3">
+          <a class="btn btn-link" href="{% url 'web:cart_view' %}">{% trans "View cart" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

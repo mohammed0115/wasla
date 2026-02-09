@@ -1,6 +1,6 @@
-<div dir="rtl" style="font-family: Arial, sans-serif">
-  <h2>رمز التحقق</h2>
-  <p>رمزك هو: <strong style="font-size: 22px">{{ code }}</strong></p>
-  <p>سينتهي خلال {{ expires_minutes }} دقائق.</p>
+{% load i18n %}
+<div dir="{{ LANGUAGE_DIR|default:'rtl' }}" style="font-family: Arial, sans-serif">
+  <h2>{% trans "Verification code" %}</h2>
+  <p>{% trans "Your code is:" %} <strong style="font-size: 22px">{{ code }}</strong></p>
+  <p>{% blocktrans with minutes=expires_minutes %}It expires in {{ minutes }} minutes.{% endblocktrans %}</p>
 </div>
-

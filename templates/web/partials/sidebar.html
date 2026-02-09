@@ -1,14 +1,22 @@
+{% load i18n %}
 {% with p=request.path %}
 <div class="d-grid gap-2">
-  <a class="nav-link {% if p == '/' %}active{% endif %}" href="{% url 'web:dashboard' %}">لوحة التحكم</a>
-  <a class="nav-link {% if '/products/' in p %}active{% endif %}" href="{% url 'web:product_list' %}">المنتجات</a>
-  <a class="nav-link {% if '/orders/' in p %}active{% endif %}" href="{% url 'web:order_list' %}">الطلبات</a>
-  <a class="nav-link {% if '/shipments/' in p %}active{% endif %}" href="{% url 'web:shipment_list' %}">الشحن</a>
-  <a class="nav-link {% if '/wallet/' in p %}active{% endif %}" href="{% url 'web:wallet_detail' %}">المحفظة</a>
-  <a class="nav-link {% if '/reviews/' in p %}active{% endif %}" href="{% url 'web:review_list' %}">المراجعات</a>
-  <a class="nav-link {% if '/app-store/' in p %}active{% endif %}" href="{% url 'web:plugin_store' %}">متجر التطبيقات</a>
-  <a class="nav-link {% if '/subscriptions/' in p %}active{% endif %}" href="{% url 'web:subscription_plans' %}">الاشتراكات</a>
-  <a class="nav-link {% if '/settings/' in p %}active{% endif %}" href="{% url 'web:settings' %}">الإعدادات</a>
+  <a class="nav-link {% if p == '/' %}active{% endif %}" href="{% url 'web:dashboard' %}">{% trans "Dashboard" %}</a>
+  <a class="nav-link {% if '/products/' in p %}active{% endif %}" href="{% url 'web:product_list' %}">{% trans "Products" %}</a>
+  <a class="nav-link {% if '/orders/' in p %}active{% endif %}" href="{% url 'web:order_list' %}">{% trans "Orders" %}</a>
+  <a class="nav-link {% if '/shipments/' in p %}active{% endif %}" href="{% url 'web:shipment_list' %}">{% trans "Shipping" %}</a>
+  <a class="nav-link {% if '/wallet/' in p %}active{% endif %}" href="{% url 'web:wallet_detail' %}">{% trans "Wallet" %}</a>
+  <a class="nav-link {% if '/dashboard/balance' in p %}active{% endif %}" href="{% url 'web:dashboard_balance' %}">{% trans "Balance" %}</a>
+  <a class="nav-link {% if '/dashboard/settlements' in p %}active{% endif %}" href="{% url 'web:dashboard_settlements' %}">{% trans "Settlements" %}</a>
+  <a class="nav-link {% if '/reviews/' in p %}active{% endif %}" href="{% url 'web:review_list' %}">{% trans "Reviews" %}</a>
+  <a class="nav-link {% if '/app-store/' in p %}active{% endif %}" href="{% url 'web:plugin_store' %}">{% trans "App Store" %}</a>
+  <a class="nav-link {% if '/subscriptions/' in p %}active{% endif %}" href="{% url 'web:subscription_plans' %}">{% trans "Subscriptions" %}</a>
+  <a class="nav-link {% if '/dashboard/import' in p %}active{% endif %}" href="{% url 'web:dashboard_import' %}">{% trans "Bulk Import" %}</a>
+  <a class="nav-link {% if '/dashboard/themes' in p %}active{% endif %}" href="{% url 'web:dashboard_themes' %}">{% trans "Themes" %}</a>
+  <a class="nav-link {% if '/dashboard/branding' in p %}active{% endif %}" href="{% url 'web:dashboard_branding' %}">{% trans "Branding" %}</a>
+  <a class="nav-link {% if '/dashboard/exports' in p %}active{% endif %}" href="{% url 'web:dashboard_exports' %}">{% trans "Exports" %}</a>
+  <a class="nav-link {% if '/dashboard/ai' in p %}active{% endif %}" href="{% url 'web:dashboard_ai_tools' %}">{% trans "AI Tools" %}</a>
+  <a class="nav-link {% if '/dashboard/analytics' in p %}active{% endif %}" href="{% url 'web:dashboard_analytics_events' %}">{% trans "Analytics" %}</a>
+  <a class="nav-link {% if '/settings/' in p %}active{% endif %}" href="{% url 'web:settings' %}">{% trans "Settings" %}</a>
 </div>
 {% endwith %}
-

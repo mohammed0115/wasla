@@ -111,4 +111,8 @@ class OrderService:
                 inventory.product.save(update_fields=["is_active"])
 
         order.status = "paid"
-        order.save(update_fields=["status"])
+        if hasattr(order, "payment_status"):
+            order.payment_status = "paid"
+            order.save(update_fields=["status", "payment_status"])
+        else:
+            order.save(update_fields=["status"])

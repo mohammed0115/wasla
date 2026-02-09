@@ -20,9 +20,21 @@ from apps.tenants.application.use_cases.activate_store import (
     DeactivateStoreCommand,
     DeactivateStoreUseCase,
 )
+from apps.tenants.application.use_cases.add_custom_domain import (
+    AddCustomDomainCommand,
+    AddCustomDomainUseCase,
+)
+from apps.tenants.application.use_cases.disable_domain import (
+    DisableDomainCommand,
+    DisableDomainUseCase,
+)
 from apps.tenants.application.use_cases.get_store_readiness import (
     GetStoreReadinessCommand,
     GetStoreReadinessUseCase,
+)
+from apps.tenants.application.use_cases.get_setup_progress import (
+    GetSetupProgressCommand,
+    GetSetupProgressUseCase,
 )
 from apps.tenants.application.use_cases.store_setup_wizard import StoreSetupWizardUseCase
 from apps.tenants.application.use_cases.update_payment_settings import (
@@ -39,13 +51,17 @@ from apps.tenants.application.use_cases.update_store_settings import (
 )
 from apps.tenants.domain.errors import (
     StoreAccessDeniedError,
+    StoreDomainError,
     StoreNotReadyError,
     StoreSlugAlreadyTakenError,
 )
 from apps.tenants.interfaces.web.decorators import resolve_tenant_for_request, tenant_access_required
-from apps.tenants.models import StorePaymentSettings, StoreProfile, StoreShippingSettings
+from apps.tenants.models import StoreDomain, StorePaymentSettings, StoreProfile, StoreShippingSettings
+from apps.tenants.tasks import enqueue_verify_domain
+from apps.tenants.domain.tenant_context import TenantContext
 
 from .forms import (
+    CustomDomainForm,
     PaymentSettingsForm,
     ShippingSettingsForm,
     StoreInfoSetupForm,
@@ -196,7 +212,23 @@ def dashboard_setup_payment(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "web/store/setup_payment.html",
-        {"form": form, "tenant": tenant, "step": 2, "state": state},
+        {
+            "form": form,
+            "tenant": tenant,
+            "step": 2,
+            "state": state,
+            "wizard_progress": GetSetupProgressUseCase.execute(
+                GetSetupProgressCommand(
+                    tenant_ctx=TenantContext(
+                        tenant_id=tenant.id,
+                        currency=tenant.currency,
+                        user_id=request.user.id,
+                        session_key=request.session.session_key or "",
+                    ),
+                    actor_id=request.user.id,
+                )
+            ),
+        },
     )
 
 
@@ -253,7 +285,23 @@ def dashboard_setup_shipping(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "web/store/setup_shipping.html",
-        {"form": form, "tenant": tenant, "step": 3, "state": state},
+        {
+            "form": form,
+            "tenant": tenant,
+            "step": 3,
+            "state": state,
+            "wizard_progress": GetSetupProgressUseCase.execute(
+                GetSetupProgressCommand(
+                    tenant_ctx=TenantContext(
+                        tenant_id=tenant.id,
+                        currency=tenant.currency,
+                        user_id=request.user.id,
+                        session_key=request.session.session_key or "",
+                    ),
+                    actor_id=request.user.id,
+                )
+            ),
+        },
     )
 
 
@@ -323,6 +371,17 @@ def dashboard_setup_activate(request: HttpRequest) -> HttpResponse:
             "readiness": readiness,
             "public_url_hint": public_url_hint,
             "storefront_path": "/store/",
+            "wizard_progress": GetSetupProgressUseCase.execute(
+                GetSetupProgressCommand(
+                    tenant_ctx=TenantContext(
+                        tenant_id=tenant.id,
+                        currency=tenant.currency,
+                        user_id=request.user.id,
+                        session_key=request.session.session_key or "",
+                    ),
+                    actor_id=request.user.id,
+                )
+            ),
         },
     )
 
@@ -367,7 +426,22 @@ def store_setup_step1(request: HttpRequest) -> HttpResponse:
             messages.success(request, "Store info saved.")
             return redirect("web:dashboard_setup_payment")
 
-    context = {"form": form, "tenant": tenant, "step": 1}
+    context = {
+        "form": form,
+        "tenant": tenant,
+        "step": 1,
+        "wizard_progress": GetSetupProgressUseCase.execute(
+            GetSetupProgressCommand(
+                tenant_ctx=TenantContext(
+                    tenant_id=tenant.id,
+                    currency=tenant.currency,
+                    user_id=request.user.id,
+                    session_key=request.session.session_key or "",
+                ),
+                actor_id=request.user.id,
+            )
+        ),
+    }
     return render(request, "web/store/setup_step1.html", context)
 
 
@@ -424,5 +498,90 @@ def store_settings_update(request: HttpRequest) -> HttpResponse:
         messages.error(request, str(exc))
     else:
         messages.success(request, "Store settings updated.")
+
+    return redirect("web:settings")
+
+
+@require_GET
+def custom_domain_verification(request: HttpRequest, token: str) -> HttpResponse:
+    host = (request.get_host() or "").split(":", 1)[0].strip().lower()
+    domain = (
+        StoreDomain.objects.filter(domain=host, verification_token=token)
+        .exclude(status=StoreDomain.STATUS_DISABLED)
+        .first()
+    )
+    if not domain:
+        return HttpResponse("Not found", status=404, content_type="text/plain")
+    return HttpResponse(token, content_type="text/plain")
+
+
+@login_required
+@tenant_access_required
+@require_POST
+def custom_domain_add(request: HttpRequest) -> HttpResponse:
+    tenant = request.tenant
+    form = CustomDomainForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Invalid domain.")
+        return redirect("web:settings")
+
+    try:
+        AddCustomDomainUseCase.execute(
+            AddCustomDomainCommand(
+                user=request.user,
+                tenant=tenant,
+                domain=form.cleaned_data["domain"],
+            )
+        )
+    except StoreDomainError as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, "Domain added. Update DNS then verify.")
+
+    return redirect("web:settings")
+
+
+@login_required
+@tenant_access_required
+@require_POST
+def custom_domain_verify(request: HttpRequest, domain_id: int) -> HttpResponse:
+    tenant = request.tenant
+    domain = StoreDomain.objects.filter(id=domain_id, tenant=tenant).first()
+    if not domain:
+        messages.error(request, "Domain not found.")
+        return redirect("web:settings")
+
+    try:
+        EnsureTenantOwnershipPolicy.ensure_is_owner(user=request.user, tenant=tenant)
+    except StoreAccessDeniedError as exc:
+        raise PermissionDenied(str(exc)) from exc
+
+    enqueue_verify_domain(domain_id=domain.id)
+    messages.success(request, "Verification started. Please wait a moment.")
+    return redirect("web:settings")
+
+
+@login_required
+@tenant_access_required
+@require_POST
+def custom_domain_disable(request: HttpRequest, domain_id: int) -> HttpResponse:
+    tenant = request.tenant
+    domain = StoreDomain.objects.filter(id=domain_id, tenant=tenant).first()
+    if not domain:
+        messages.error(request, "Domain not found.")
+        return redirect("web:settings")
+
+    try:
+        DisableDomainUseCase.execute(
+            DisableDomainCommand(
+                actor=request.user,
+                domain_id=domain.id,
+                reason=request.POST.get("reason") or "",
+            )
+        )
+    except StoreDomainError as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, "Domain disabled.")
 
     return redirect("web:settings")

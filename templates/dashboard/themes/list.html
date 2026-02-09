@@ -1,0 +1,45 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Themes" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Themes" %}</h1>
+    <div class="text-muted small">{% trans "Choose a storefront theme." %}</div>
+  </div>
+  <a class="btn btn-outline-primary" href="{% url 'web:dashboard_branding' %}">{% trans "Edit branding" %}</a>
+</div>
+
+<div class="row g-3">
+  {% for theme in themes %}
+    <div class="col-12 col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="fw-bold mb-2">{% trans theme.name_key %}</div>
+          {% if theme.preview_image_path %}
+            <img src="{{ theme.preview_image_path }}" alt="{{ theme.code }}" class="img-fluid rounded" />
+          {% else %}
+            <div class="bg-light border rounded p-4 text-center text-muted">{% trans "No preview" %}</div>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+          {% if branding and branding.theme_code == theme.code %}
+            <span class="badge text-bg-success">{% trans "Selected" %}</span>
+          {% endif %}
+          <form method="post" action="{% url 'web:dashboard_themes' %}">
+            {% csrf_token %}
+            <input type="hidden" name="theme_code" value="{{ theme.code }}" />
+            <button class="btn btn-sm btn-primary" type="submit">{% trans "Use theme" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="text-muted">{% trans "No themes available." %}</div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

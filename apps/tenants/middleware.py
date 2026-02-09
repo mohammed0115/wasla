@@ -19,6 +19,7 @@ from django.db.utils import OperationalError, ProgrammingError
 from django.utils import translation
 
 from .models import Tenant
+from .services.domain_resolution import resolve_tenant_by_host
 
 
 class TenantMiddleware:
@@ -61,7 +62,7 @@ class TenantMiddleware:
                 else:
                     tenant = Tenant.objects.filter(slug=raw_header, is_active=True).first()
                     if not tenant:
-                        tenant = Tenant.objects.filter(domain=raw_header, is_active=True).first()
+                        tenant = resolve_tenant_by_host(raw_header)
 
                 if tenant:
                     request.session["store_id"] = tenant.id
@@ -94,18 +95,10 @@ class TenantMiddleware:
                     return tenant
 
             if host:
-                tenant = Tenant.objects.filter(domain=host, is_active=True).first()
+                tenant = resolve_tenant_by_host(host)
                 if tenant:
                     request.session["store_id"] = tenant.id
                     return tenant
-
-                parts = host.split(".")
-                if len(parts) > 2:
-                    sub = parts[0]
-                    tenant = Tenant.objects.filter(slug=sub, is_active=True).first()
-                    if tenant:
-                        request.session["store_id"] = tenant.id
-                        return tenant
 
         except (OperationalError, ProgrammingError):
             return None

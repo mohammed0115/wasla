@@ -1,12 +1,14 @@
 {% extends "layouts/auth_base.html" %}
-{% block title %}ابدأ التسجيل | Wasla{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Start registration" %} | Wasla{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-12 col-md-8 col-lg-6 col-xl-5">
     <div class="card shadow-sm">
       <div class="card-body p-4">
-        <h5 class="mb-3">ابدأ برقم الجوال أو البريد</h5>
+        <h5 class="mb-3">{% trans "Start with phone or email" %}</h5>
         <form method="post" action="{% url 'auth:start' %}">
           {% csrf_token %}
           <div class="mb-3">
@@ -14,10 +16,10 @@
             {{ form.identifier }}
             {% if form.identifier.errors %}<div class="text-danger small mt-1">{{ form.identifier.errors|striptags }}</div>{% endif %}
           </div>
-          <button class="btn btn-primary w-100" type="submit">متابعة</button>
+          <button class="btn btn-primary w-100" type="submit">{% trans "Continue" %}</button>
         </form>
         <div class="text-center mt-3">
-          <a href="{% url 'login' %}">تسجيل الدخول بكلمة المرور</a>
+          <a href="{% url 'login' %}">{% trans "Login with password" %}</a>
         </div>
       </div>
     </div>

@@ -1,5 +1,7 @@
 {% extends "layouts/auth_base.html" %}
-{% block title %}الحساب | Wasla{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Account" %} | Wasla{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -9,12 +11,12 @@
         <ul class="nav nav-tabs mb-4" role="tablist">
           <li class="nav-item" role="presentation">
             <a class="nav-link {% if active_tab == 'login' %}active{% endif %}" href="{% url 'login' %}">
-              تسجيل الدخول
+              {% trans "Login" %}
             </a>
           </li>
           <li class="nav-item" role="presentation">
             <a class="nav-link {% if active_tab == 'register' %}active{% endif %}" href="{% url 'signup' %}">
-              حساب جديد
+              {% trans "Create account" %}
             </a>
           </li>
         </ul>
@@ -40,9 +42,9 @@
             </div>
 
             <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}" />
-            <button class="btn btn-primary w-100" type="submit">دخول</button>
+            <button class="btn btn-primary w-100" type="submit">{% trans "Login" %}</button>
             <div class="text-center mt-3">
-              <a href="{% url 'auth:start' %}">دخول سريع برمز تحقق</a>
+              <a href="{% url 'auth:start' %}">{% trans "Quick login with verification code" %}</a>
             </div>
           </form>
         {% else %}
@@ -83,15 +85,15 @@
               {% if signup_form.accept_terms.errors %}<div class="text-danger small mt-1">{{ signup_form.accept_terms.errors|striptags }}</div>{% endif %}
             </div>
 
-            <button class="btn btn-primary w-100" type="submit">إنشاء حساب</button>
+            <button class="btn btn-primary w-100" type="submit">{% trans "Create account" %}</button>
           </form>
         {% endif %}
 
         <div class="text-center mt-4">
-          <div class="text-muted small mb-2">التسجيل عبر</div>
+          <div class="text-muted small mb-2">{% trans "Continue with" %}</div>
           <div class="d-grid gap-2">
-            <button class="btn btn-outline-secondary" type="button" disabled>Google (Phase 2)</button>
-            <button class="btn btn-outline-secondary" type="button" disabled>Apple (Phase 2)</button>
+            <button class="btn btn-outline-secondary" type="button" disabled>{% trans "Google (Phase 2)" %}</button>
+            <button class="btn btn-outline-secondary" type="button" disabled>{% trans "Apple (Phase 2)" %}</button>
           </div>
         </div>
       </div>

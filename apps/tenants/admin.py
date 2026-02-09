@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    StoreDomain,
     StorePaymentSettings,
     StoreProfile,
     StoreShippingSettings,
@@ -52,6 +53,14 @@ class StoreProfileAdmin(admin.ModelAdmin):
     )
     list_filter = ("store_info_completed", "setup_step", "is_setup_complete")
     search_fields = ("tenant__slug", "tenant__name", "owner__username", "owner__email")
+    ordering = ("-id",)
+
+
+@admin.register(StoreDomain)
+class StoreDomainAdmin(admin.ModelAdmin):
+    list_display = ("id", "tenant", "domain", "status", "verified_at", "last_check_at", "created_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("domain", "tenant__slug", "tenant__name")
     ordering = ("-id",)
 
 

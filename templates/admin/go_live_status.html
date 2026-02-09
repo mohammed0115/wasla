@@ -1,0 +1,91 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Go-Live Status" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Go-Live Status" %}</h1>
+    <div class="text-muted small">
+      {% trans "System readiness checklist for production go-live." %}
+    </div>
+  </div>
+  <span class="badge {% if report.ok %}text-bg-success{% else %}text-bg-danger{% endif %}">
+    {% if report.ok %}{% trans "Ready" %}{% else %}{% trans "Blocked" %}{% endif %}
+  </span>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+    <div>
+      <div class="text-muted small">{% trans "Readiness Score" %}</div>
+      <div class="h4 mb-0">{{ report.score }}%</div>
+    </div>
+    <div>
+      <div class="text-muted small">{% trans "Hard Blockers" %}</div>
+      <div class="h4 mb-0">{{ hard_blockers|length }}</div>
+    </div>
+    <div>
+      <div class="text-muted small">{% trans "Warnings" %}</div>
+      <div class="h4 mb-0">{{ warnings|length }}</div>
+    </div>
+  </div>
+</div>
+
+{% if hard_blockers %}
+  <div class="alert alert-danger">
+    <div class="fw-semibold mb-2">{% trans "Go-Live is blocked by these items:" %}</div>
+    <ul class="mb-0">
+      {% for item in hard_blockers %}
+        <li><strong>{{ item.label }}</strong> — {{ item.message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% if warnings %}
+  <div class="alert alert-warning">
+    <div class="fw-semibold mb-2">{% trans "Warnings (non-blocking):" %}</div>
+    <ul class="mb-0">
+      {% for item in warnings %}
+        <li><strong>{{ item.label }}</strong> — {{ item.message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% for category in report.categories %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-header bg-white fw-bold">{{ category.label }}</div>
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "Check" %}</th>
+            <th>{% trans "Level" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Details" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in category.items %}
+            <tr>
+              <td>{{ item.label }}</td>
+              <td><span class="badge text-bg-light">{{ item.level }}</span></td>
+              <td>
+                {% if item.ok %}
+                  <span class="badge text-bg-success">{% trans "OK" %}</span>
+                {% else %}
+                  <span class="badge text-bg-danger">{% trans "Fail" %}</span>
+                {% endif %}
+              </td>
+              <td class="text-muted">{{ item.message }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endfor %}
+{% endblock %}

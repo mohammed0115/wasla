@@ -1,0 +1,4 @@
+{% load i18n %}
+<button class="btn btn-{{ variant|default:'primary' }} {{ extra_classes|default:'' }}" type="{{ type|default:'button' }}">
+  {{ label|default:_("Action") }}
+</button>

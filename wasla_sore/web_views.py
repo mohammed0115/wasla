@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -30,7 +31,9 @@ from apps.subscriptions.models import SubscriptionPlan
 from apps.subscriptions.services.subscription_service import SubscriptionService
 from apps.wallet.services.wallet_service import WalletService
 from apps.tenants.interfaces.web.decorators import tenant_access_required
-from apps.tenants.interfaces.web.forms import StoreSettingsForm
+from apps.tenants.domain.policies import normalize_domain
+from apps.tenants.interfaces.web.forms import CustomDomainForm, StoreSettingsForm
+from apps.tenants.models import StoreDomain
 
 
 def _get_store_id(request: HttpRequest) -> int:
@@ -593,6 +596,20 @@ def settings_view(request: HttpRequest) -> HttpResponse:
     tenant = request.tenant
     store_profile = getattr(tenant, "store_profile", None)
     active_sub = SubscriptionService.get_active_subscription(store_id)
+    custom_domains = StoreDomain.objects.filter(tenant=tenant).order_by("-created_at")
+    custom_domain_form = CustomDomainForm()
+
+    server_ip = (getattr(settings, "CUSTOM_DOMAIN_SERVER_IP", "") or "").strip()
+    cname_target = (getattr(settings, "CUSTOM_DOMAIN_CNAME_TARGET", "") or "").strip()
+    if not cname_target:
+        base_domain = normalize_domain(getattr(settings, "WASSLA_BASE_DOMAIN", ""))
+        if base_domain:
+            cname_target = f"stores.{base_domain}"
+    verification_path_prefix = getattr(
+        settings,
+        "CUSTOM_DOMAIN_VERIFICATION_PATH_PREFIX",
+        "/.well-known/wassla-domain-verification",
+    )
     store_settings_form = StoreSettingsForm(
         initial={
             "name": tenant.name,
@@ -612,6 +629,11 @@ def settings_view(request: HttpRequest) -> HttpResponse:
             "store_profile": store_profile,
             "active_subscription": active_sub,
             "store_settings_form": store_settings_form,
+            "custom_domains": custom_domains,
+            "custom_domain_form": custom_domain_form,
+            "custom_domain_server_ip": server_ip,
+            "custom_domain_cname_target": cname_target,
+            "custom_domain_verification_prefix": verification_path_prefix,
         },
     )
 

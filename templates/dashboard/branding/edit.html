@@ -1,0 +1,51 @@
+{% extends "layouts/dashboard_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Branding" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">{% trans "Branding" %}</h1>
+    <div class="text-muted small">{% trans "Update logo, colors, and fonts." %}</div>
+  </div>
+  <a class="btn btn-outline-primary" href="{% url 'web:dashboard_themes' %}">{% trans "Themes" %}</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">{% trans "Theme code" %}</label>
+        {{ form.theme_code }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">{% trans "Logo" %}</label>
+        {{ form.logo_file }}
+      </div>
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <label class="form-label">{% trans "Primary color" %}</label>
+          {{ form.primary_color }}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">{% trans "Secondary color" %}</label>
+          {{ form.secondary_color }}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">{% trans "Accent color" %}</label>
+          {{ form.accent_color }}
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="form-label">{% trans "Font family" %}</label>
+        {{ form.font_family }}
+      </div>
+      <div class="mt-4">
+        <button class="btn btn-primary" type="submit">{% trans "Save branding" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

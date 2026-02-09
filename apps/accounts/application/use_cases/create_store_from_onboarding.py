@@ -26,6 +26,9 @@ from apps.accounts.application.use_cases.ensure_onboarding_step import (
     EnsureOnboardingStepUseCase,
 )
 from apps.accounts.models import OnboardingProfile
+from apps.analytics.application.telemetry import TelemetryService, actor_from_user
+from apps.analytics.domain.types import ObjectRef
+from apps.tenants.domain.tenant_context import TenantContext
 from apps.tenants.models import StoreProfile, Tenant, TenantMembership
 
 
@@ -98,5 +101,26 @@ class CreateStoreFromOnboardingUseCase:
 
         profile.step = OnboardingProfile.STEP_DONE
         profile.save(update_fields=["step"])
+
+        tenant_ctx = TenantContext(
+            tenant_id=tenant.id,
+            currency=tenant.currency,
+            user_id=getattr(cmd.user, "id", None),
+            session_key=None,
+        )
+        TelemetryService.track(
+            event_name="onboarding.step_completed",
+            tenant_ctx=tenant_ctx,
+            actor_ctx=actor_from_user(user=cmd.user, actor_type="MERCHANT"),
+            object_ref=ObjectRef(object_type="TENANT", object_id=tenant.id),
+            properties={"step": "store_created"},
+        )
+        TelemetryService.track(
+            event_name="onboarding.completed",
+            tenant_ctx=tenant_ctx,
+            actor_ctx=actor_from_user(user=cmd.user, actor_type="MERCHANT"),
+            object_ref=ObjectRef(object_type="TENANT", object_id=tenant.id),
+            properties={"step": "done"},
+        )
 
         return CreateStoreFromOnboardingResult(tenant_id=tenant.id, slug=tenant.slug)
