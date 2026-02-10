@@ -79,9 +79,9 @@ class StoreDomain(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=["domain"], name="tenants_storedomain_domain_idx"),
-            models.Index(fields=["tenant", "status"], name="tenants_storedomain_tenant_status_idx"),
-            models.Index(fields=["status", "last_check_at"], name="tenants_storedomain_status_check_idx"),
+            models.Index(fields=["domain"], name="domain_domain_idx"),
+            models.Index(fields=["tenant", "status"], name="domain_tenant_status_idx"),
+            models.Index(fields=["status", "last_check_at"], name="domain_status_check_idx"),
         ]
 
     def __str__(self) -> str:
